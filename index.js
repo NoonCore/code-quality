@@ -536,12 +536,12 @@ class CodeQualityChecker {
         finalResult.success = true; // Override success for Knip warnings only
       }
       
-      // Show result - special handling for Knip warnings
+      // Show result - show warning icon for any tool with warnings
       let actualSuccess = finalResult.success;
       let displayIcon = finalResult.success ? '✅ Done' : '❌ Failed';
       
-      if (name === 'Knip' && finalResult.success && counts.warnings > 0 && counts.errors === 0) {
-        displayIcon = '⚠️ Done'; // Show warning icon for Knip with warnings
+      if (finalResult.success && counts.warnings > 0) {
+        displayIcon = '⚠️ Done'; // Show warning icon for any tool with warnings
       }
       
       if (actualSuccess) {
@@ -585,13 +585,13 @@ class CodeQualityChecker {
       const name = result.name.padEnd(12, ' ');
       let status = result.success ? 'Passed' : 'Failed';
       
-      // Special handling for Knip - treat warnings as passed with warning icon
-      if (result.name === 'Knip' && result.warnings > 0 && result.errors === 0) {
+      // Show warning icon for any tool that passed but has warnings
+      if (result.success && result.warnings > 0) {
         icon = '⚠️';
-        status = 'Passed';
       }
       
-      if (!result.success && (result.errors > 0 || result.warnings > 0)) {
+      // Build status message with counts
+      if (result.errors > 0 || result.warnings > 0) {
         const parts = [];
         if (result.errors > 0) parts.push(`${result.errors} error${result.errors !== 1 ? 's' : ''}`);
         if (result.warnings > 0) {
