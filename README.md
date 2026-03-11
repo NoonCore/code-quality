@@ -163,6 +163,7 @@ code-quality --Prettier --fix         # Fix only Prettier
 ```
 
 The `--fix` flag will:
+
 1. Run quality checks normally
 2. If ESLint or Prettier fail, automatically run:
    - `eslint --fix` for ESLint issues
@@ -295,10 +296,11 @@ console.log(result.results) // per-tool results array
 | `commands`         | `Record<string, string>`             | bundled paths | Custom commands per tool                                                                    |
 | `descriptions`     | `Record<string, string>`             | built-in      | Custom descriptions per tool                                                                |
 | `loadEnv`          | `boolean`                            | `true`        | Load `.env` file                                                                            |
-| `environment`      | `string`                             | auto-detected | Override environment (development, ci, production)                                        |
-| `environments`     | `Record<string, EnvironmentConfig>` | -             | Environment-specific tool configurations                                                 |
+| `environment`      | `string`                             | auto-detected | Override environment (development, ci, production)                                          |
+| `environments`     | `Record<string, EnvironmentConfig>`  | -             | Environment-specific tool configurations                                                    |
 
 **EnvironmentConfig:**
+
 ```typescript
 interface EnvironmentConfig {
   tools: string[]
@@ -367,12 +369,14 @@ code-quality --env production
 ```
 
 **Token Validation Features:**
+
 - **Pre-scan validation** - Checks token before running full scan
 - **Clear cache** - Forces token validation by clearing Snyk cache
 - **Detailed errors** - Shows helpful fix instructions for invalid tokens
 - **Fallback handling** - Graceful degradation for token issues
 
 **Error Messages:**
+
 ```
 ❌ Snyk token validation failed. Token may be expired or invalid.
 

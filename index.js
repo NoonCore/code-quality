@@ -274,7 +274,7 @@ class CodeQualityChecker {
             '⚠️  SNYK_TOKEN not found in environment variables. Please set SNYK_TOKEN in your .env file or run:\n  export SNYK_TOKEN=your_token_here\n\nYou can get a free token at: https://snyk.io/login',
         }
       }
-      
+
       // Validate Snyk token by clearing cache and testing
       try {
         // Clear Snyk cache to force token validation
@@ -283,14 +283,14 @@ class CodeQualityChecker {
         if (fs.existsSync(snykConfigPath)) {
           fs.rmSync(snykConfigPath, { recursive: true, force: true })
         }
-        
+
         const authCheck = execSync('npx snyk test --severity-threshold=high', {
           stdio: 'pipe',
           encoding: 'utf8',
           env: process.env,
           timeout: 15000, // 15 second timeout
         })
-        
+
         // If test succeeds, token is valid - return the result directly to avoid double run
         if (authCheck.includes('✔ Tested') || authCheck.includes('No vulnerable paths found')) {
           return { success: true, output: authCheck.trim() }
@@ -298,7 +298,11 @@ class CodeQualityChecker {
       } catch (authError) {
         // If auth check fails, check if it's authentication error
         const authOutput = authError.stdout || authError.stderr || authError.message || ''
-        if (authOutput.includes('Authentication error') || authOutput.includes('401') || authOutput.includes('SNYK-0005')) {
+        if (
+          authOutput.includes('Authentication error') ||
+          authOutput.includes('401') ||
+          authOutput.includes('SNYK-0005')
+        ) {
           return {
             success: false,
             output:
