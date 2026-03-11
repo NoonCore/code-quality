@@ -267,9 +267,15 @@ class CodeQualityChecker {
 
     switch (toolName) {
       case 'TypeScript': {
-        // TypeScript format: "Found X errors"
-        const errorMatch = output.match(/Found (\d+) errors?/);
-        if (errorMatch) errors = parseInt(errorMatch[1], 10);
+        // Parse individual TypeScript errors
+        const errorLines = output.split('\n').filter(line => line.includes('error TS'));
+        errors = errorLines.length;
+        
+        // Also try the "Found X errors" format as fallback
+        if (errors === 0) {
+          const errorMatch = output.match(/Found (\d+) errors?/);
+          if (errorMatch) errors = parseInt(errorMatch[1], 10);
+        }
         break;
       }
       case 'ESLint': {
@@ -308,6 +314,61 @@ class CodeQualityChecker {
     }
 
     return { errors, warnings };
+  }
+
+  _parseErrorLines(toolName, output) {
+    if (!output) return [];
+
+    const errorLines = [];
+
+    switch (toolName) {
+      case 'TypeScript': {
+        // Extract individual TypeScript error lines
+        const lines = output.split('\n');
+        for (const line of lines) {
+          if (line.includes('error TS') && line.includes('):')) {
+            // Format: file.ts(line,column): error TS####: message
+            const cleanLine = line.trim();
+            errorLines.push(cleanLine);
+          }
+        }
+        break;
+      }
+      case 'ESLint': {
+        // Extract ESLint error lines
+        const lines = output.split('\n');
+        for (const line of lines) {
+          if (line.includes('error ') && line.includes(':')) {
+            errorLines.push(line.trim());
+          }
+        }
+        break;
+      }
+      case 'Prettier': {
+        // Extract files that need formatting
+        const lines = output.split('\n');
+        for (const line of lines) {
+          if (line.trim() && !line.includes('Code style issues') && !line.includes('formatted')) {
+            errorLines.push(line.trim());
+          }
+        }
+        break;
+      }
+      case 'Knip': {
+        // Extract Knip issues
+        const lines = output.split('\n');
+        for (const line of lines) {
+          if (line.includes('unused') || line.includes('unlisted') || line.includes('unresolved') || line.includes('duplicate')) {
+            errorLines.push(line.trim());
+          }
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    return errorLines;
   }
 
   async run(options = {}) {
@@ -375,7 +436,8 @@ class CodeQualityChecker {
       }
 
       const counts = this._parseErrorCounts(name, result.output);
-      results.push({ name, description, ...result, ...counts });
+      const errorLines = this._parseErrorLines(name, result.output);
+      results.push({ name, description, ...result, ...counts, errorLines });
       step++;
     }
 
@@ -403,6 +465,14 @@ class CodeQualityChecker {
       }
       
       console.log(`${icon} ${name}${status}`);
+      
+      // Show individual error lines for failed tools
+      if (!result.success && result.errorLines && result.errorLines.length > 0) {
+        console.log(`   📝 Error details:`);
+        for (const errorLine of result.errorLines) {
+          console.log(`   • ${errorLine}`);
+        }
+      }
     }
     
     console.log('\n' + '─'.repeat(50));
@@ -413,10 +483,23 @@ class CodeQualityChecker {
     } else {
       console.log('❌ Some quality checks failed.\n');
       console.log(`📊 Results: ${passed.length} passed, ${failed.length} failed\n`);
-      if (!showLogs) {
-        console.log('💡 Run with --logs flag to see detailed errors');
+      
+      // Show summary of all errors for AI analysis
+      console.log('🤖 For AI Analysis - Summary of All Errors:\n');
+      for (const result of failed) {
+        if (result.errorLines && result.errorLines.length > 0) {
+          console.log(`## ${result.name} Errors:`);
+          for (const errorLine of result.errorLines) {
+            console.log(errorLine);
+          }
+          console.log(''); // Empty line between tools
+        }
       }
-      console.log('📄 See .quality-report.md for full details\n');
+      
+      if (!showLogs) {
+        console.log('💡 Run with --logs flag to see full tool output');
+      }
+      console.log('📄 See .quality-report.md for complete details\n');
     }
 
     return {
@@ -912,6 +995,18 @@ if (require.main === module) {
       if (!result.success && args.includes('--logs')) {
         console.log(`\n❌ ${toolName} Error:`);
         console.log('─'.repeat(50));
+        
+        // Show parsed error lines for better AI analysis
+        const errorLines = checker._parseErrorLines(toolName, result.output);
+        if (errorLines.length > 0) {
+          console.log('📝 Individual Errors:');
+          for (const errorLine of errorLines) {
+            console.log(`• ${errorLine}`);
+          }
+          console.log(''); // Empty line before full output
+        }
+        
+        console.log('📄 Full Output:');
         console.log(result.output);
         console.log('─'.repeat(50));
       }
