@@ -152,8 +152,8 @@ function detectProjectConfigs() {
 // ─── Default Checks ─────────────────────────────────────────────────────────
 
 const DEFAULT_TOOLS = [
-  { name: 'TypeScript', bin: 'tsc', args: '--noEmit', description: 'Type checking and compilation' },
   { name: 'ESLint', bin: 'eslint', args: '. --ext .js,.jsx,.ts,.tsx', description: 'Code linting and style checking' },
+  { name: 'TypeScript', bin: 'tsc', args: '--noEmit', description: 'Type checking and compilation' },
   { name: 'Prettier', bin: 'prettier', args: '--check .', description: 'Code formatting validation' },
   { name: 'Knip', bin: 'knip', args: '', description: 'Dead code detection' },
   { name: 'Snyk', bin: 'snyk', args: 'test --severity-threshold=high', description: 'Security vulnerability scanning' },
@@ -473,20 +473,20 @@ function generateConfigFile() {
   
   const config = {
     version: '1.0.0',
-    tools: ['TypeScript', 'ESLint', 'Prettier', 'Knip', 'Snyk'],
+    tools: ['ESLint', 'TypeScript', 'Prettier', 'Knip', 'Snyk'],
     packageManager: detectPackageManager(),
     useProjectConfig: true,
     loadEnv: true,
     commands: {
-      TypeScript: 'tsc --noEmit',
       ESLint: '. --ext .js,.jsx,.ts,.tsx',
+      TypeScript: 'tsc --noEmit',
       Prettier: '--check .',
       Knip: '',
       Snyk: 'test --severity-threshold=high'
     },
     descriptions: {
-      TypeScript: 'Type checking and compilation',
       ESLint: 'Code linting and style checking',
+      TypeScript: 'Type checking and compilation',
       Prettier: 'Code formatting validation',
       Knip: 'Dead code detection',
       Snyk: 'Security vulnerability scanning'
@@ -563,7 +563,7 @@ async function runWizard() {
     console.log('\n📋 Found existing configuration:');
     console.log(`📦 Package Manager: ${existingConfig.packageManager || 'auto-detected'}`);
     console.log(`⚙️  Config: ${existingConfig.useProjectConfig !== false ? 'Project configs' : 'Bundled configs'}`);
-    console.log(`🔧 Tools: ${(existingConfig.tools || ['TypeScript', 'ESLint', 'Prettier', 'Knip', 'Snyk']).join(', ')}`);
+    console.log(`🔧 Tools: ${(existingConfig.tools || ['ESLint', 'TypeScript', 'Prettier', 'Knip', 'Snyk']).join(', ')}`);
     console.log(`🌍 Load .env: ${existingConfig.loadEnv !== false ? 'Yes' : 'No'}`);
     
     const rerun = await askQuestion(rl, '\nReconfigure? (y/N): ');
@@ -595,13 +595,25 @@ async function runWizard() {
 
   // Step 3: Tools Selection (Checkbox style)
   console.log('\n🔧 Select tools to run (default = all checked):');
-  const allTools = ['TypeScript', 'ESLint', 'Prettier', 'Knip', 'Snyk'];
+  const allTools = ['ESLint', 'TypeScript', 'Prettier', 'Knip', 'Snyk'];
   const selectedTools = [];
   
   for (const tool of allTools) {
-    const answer = await askQuestion(rl, `[✓] ${tool}? (Y/n): `);
-    if (!answer.toLowerCase().startsWith('n')) {
-      selectedTools.push(tool);
+    // Default to Yes for ESLint, TypeScript, Prettier
+    const isDefaultYes = ['ESLint', 'TypeScript', 'Prettier'].includes(tool);
+    const prompt = isDefaultYes ? `[✓] ${tool}? (Y/n): ` : `[ ] ${tool}? (y/N): `;
+    const answer = await askQuestion(rl, prompt);
+    
+    // For default Yes tools, include unless user explicitly says 'n'
+    // For others, include only if user explicitly says 'y'
+    if (isDefaultYes) {
+      if (!answer.toLowerCase().startsWith('n')) {
+        selectedTools.push(tool);
+      }
+    } else {
+      if (answer.toLowerCase().startsWith('y')) {
+        selectedTools.push(tool);
+      }
     }
   }
 
