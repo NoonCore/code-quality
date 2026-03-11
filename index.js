@@ -279,33 +279,56 @@ class CodeQualityChecker {
         break;
       }
       case 'ESLint': {
-        // ESLint format: "✖ X problems (Y errors, Z warnings)"
+        // ESLint format: "✖ X problems (Y errors, Z warnings)" or individual error lines
         const problemMatch = output.match(/(\d+) errors?, (\d+) warnings?/);
         if (problemMatch) {
           errors = parseInt(problemMatch[1], 10);
           warnings = parseInt(problemMatch[2], 10);
         } else {
-          const errorOnlyMatch = output.match(/(\d+) errors?/);
-          const warningOnlyMatch = output.match(/(\d+) warnings?/);
-          if (errorOnlyMatch) errors = parseInt(errorOnlyMatch[1], 10);
-          if (warningOnlyMatch) warnings = parseInt(warningOnlyMatch[1], 10);
+          // Count individual error/warning lines as fallback
+          const lines = output.split('\n');
+          for (const line of lines) {
+            if (line.includes('error ')) errors++;
+            if (line.includes('warning ')) warnings++;
+          }
         }
         break;
       }
       case 'Prettier': {
         // Prettier lists files that need formatting
-        const lines = output.split('\n').filter(line => line.trim() && !line.includes('Code style issues'));
-        errors = lines.length;
+        const lines = output.split('\n');
+        const filesNeedingFormatting = lines.filter(line => {
+          const trimmed = line.trim();
+          return trimmed && 
+                 !trimmed.includes('Code style issues') && 
+                 !trimmed.includes('formatted') &&
+                 !trimmed.includes('issues found') &&
+                 !trimmed.includes('files listed') &&
+                 !trimmed.startsWith('[') &&
+                 !trimmed.startsWith('{');
+        });
+        errors = filesNeedingFormatting.length;
         break;
       }
       case 'Knip': {
-        // Knip shows issues per category
+        // Knip shows issues per category with detailed counts
         const issueMatches = output.match(/\d+\s+(unused|unlisted|unresolved|duplicate)/gi);
         if (issueMatches) {
           errors = issueMatches.reduce((sum, match) => {
             const num = parseInt(match.match(/\d+/)[0], 10);
             return sum + num;
           }, 0);
+        } else {
+          // Fallback: count lines with issue keywords
+          const lines = output.split('\n');
+          for (const line of lines) {
+            if (line.includes('unused') || line.includes('unlisted') || 
+                line.includes('unresolved') || line.includes('duplicate') ||
+                line.includes('Unused') || line.includes('Unlisted') ||
+                line.includes('Unresolved') || line.includes('Duplicate')) {
+              errors++;
+            }
+          }
         }
         break;
       }
@@ -336,31 +359,54 @@ class CodeQualityChecker {
         break;
       }
       case 'ESLint': {
-        // Extract ESLint error lines
+        // Extract ESLint error lines in standard format
         const lines = output.split('\n');
         for (const line of lines) {
-          if (line.includes('error ') && line.includes(':')) {
-            errorLines.push(line.trim());
+          const trimmedLine = line.trim();
+          // Match ESLint format: "path/to/file:line:column: error message (rule)"
+          if (trimmedLine.includes(':') && (trimmedLine.includes('error ') || trimmedLine.includes('warning '))) {
+            // Remove any ANSI color codes and clean up
+            const cleanLine = trimmedLine.replace(/\u001b\[[0-9;]*m/g, '');
+            errorLines.push(cleanLine);
           }
         }
         break;
       }
       case 'Prettier': {
-        // Extract files that need formatting
+        // Extract files that need formatting in clean format
         const lines = output.split('\n');
         for (const line of lines) {
-          if (line.trim() && !line.includes('Code style issues') && !line.includes('formatted')) {
-            errorLines.push(line.trim());
+          const trimmedLine = line.trim();
+          // Match file paths that need formatting
+          if (trimmedLine && 
+              !trimmedLine.includes('Code style issues') && 
+              !trimmedLine.includes('formatted') &&
+              !trimmedLine.includes('issues found') &&
+              !trimmedLine.includes('files listed') &&
+              !trimmedLine.startsWith('[') && // Skip JSON output
+              !trimmedLine.startsWith('{')) { // Skip JSON output
+            errorLines.push(`File needs formatting: ${trimmedLine}`);
           }
         }
         break;
       }
       case 'Knip': {
-        // Extract Knip issues
+        // Extract Knip issues in structured format
         const lines = output.split('\n');
         for (const line of lines) {
-          if (line.includes('unused') || line.includes('unlisted') || line.includes('unresolved') || line.includes('duplicate')) {
-            errorLines.push(line.trim());
+          const trimmedLine = line.trim();
+          // Match Knip issue patterns
+          if (trimmedLine.includes('unused') || 
+              trimmedLine.includes('unlisted') || 
+              trimmedLine.includes('unresolved') || 
+              trimmedLine.includes('duplicate') ||
+              trimmedLine.includes('Unused') ||
+              trimmedLine.includes('Unlisted') ||
+              trimmedLine.includes('Unresolved') ||
+              trimmedLine.includes('Duplicate')) {
+            // Clean up and format for AI readability
+            const cleanLine = trimmedLine.replace(/\u001b\[[0-9;]*m/g, ''); // Remove ANSI codes
+            errorLines.push(cleanLine);
           }
         }
         break;
