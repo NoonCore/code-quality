@@ -307,6 +307,25 @@ module.exports = { CodeQualityChecker };
 
 // If run directly, execute with default options
 if (require.main === module) {
+  const args = process.argv.slice(2);
+
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log('Usage: code-quality-lib [options]');
+    console.log('');
+    console.log('Options:');
+    console.log('  --help, -h     Show this help message');
+    console.log('  --version, -v  Show version number');
+    console.log('');
+    console.log('Runs TypeScript, ESLint, Prettier, Knip, and Snyk checks.');
+    process.exit(0);
+  }
+
+  if (args.includes('--version') || args.includes('-v')) {
+    const pkg = require('./package.json');
+    console.log(pkg.version);
+    process.exit(0);
+  }
+
   const checker = new CodeQualityChecker();
   checker.run().then(result => {
     process.exit(result.success ? 0 : 1);
