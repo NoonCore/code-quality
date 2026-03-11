@@ -79,6 +79,73 @@ function resolveToolBinDir() {
   }
 }
 
+// ─── Config File Detection ──────────────────────────────────────────────────
+
+function detectProjectConfigs() {
+  const cwd = process.cwd();
+  const configs = {
+    eslint: null,
+    prettier: null,
+    typescript: null,
+    knip: null,
+  };
+
+  // ESLint config
+  const eslintFiles = [
+    '.eslintrc.js',
+    '.eslintrc.cjs',
+    '.eslintrc.json',
+    '.eslintrc.yml',
+    '.eslintrc.yaml',
+    'eslint.config.js',
+    'eslint.config.mjs',
+  ];
+  for (const file of eslintFiles) {
+    const fullPath = path.join(cwd, file);
+    if (fs.existsSync(fullPath)) {
+      configs.eslint = fullPath;
+      break;
+    }
+  }
+
+  // Prettier config
+  const prettierFiles = [
+    '.prettierrc',
+    '.prettierrc.json',
+    '.prettierrc.yml',
+    '.prettierrc.yaml',
+    '.prettierrc.js',
+    '.prettierrc.cjs',
+    'prettier.config.js',
+    'prettier.config.cjs',
+  ];
+  for (const file of prettierFiles) {
+    const fullPath = path.join(cwd, file);
+    if (fs.existsSync(fullPath)) {
+      configs.prettier = fullPath;
+      break;
+    }
+  }
+
+  // TypeScript config
+  const tsconfigPath = path.join(cwd, 'tsconfig.json');
+  if (fs.existsSync(tsconfigPath)) {
+    configs.typescript = tsconfigPath;
+  }
+
+  // Knip config
+  const knipFiles = ['knip.json', 'knip.jsonc', '.knip.json', '.knip.jsonc'];
+  for (const file of knipFiles) {
+    const fullPath = path.join(cwd, file);
+    if (fs.existsSync(fullPath)) {
+      configs.knip = fullPath;
+      break;
+    }
+  }
+
+  return configs;
+}
+
 // ─── Default Checks ─────────────────────────────────────────────────────────
 
 const DEFAULT_TOOLS = [
@@ -95,6 +162,7 @@ class CodeQualityChecker {
   constructor(options = {}) {
     this.options = {
       loadEnv: options.loadEnv !== false,
+      useProjectConfig: options.useProjectConfig !== false,
       tools: options.tools || DEFAULT_TOOLS.map((t) => t.name),
       commands: options.commands || {},
       descriptions: options.descriptions || {},
@@ -102,6 +170,9 @@ class CodeQualityChecker {
     };
 
     if (this.options.loadEnv) loadEnvFile();
+
+    // Detect project configs if useProjectConfig is enabled
+    this.projectConfigs = this.options.useProjectConfig ? detectProjectConfigs() : {};
   }
 
   _getChecks() {
@@ -112,9 +183,28 @@ class CodeQualityChecker {
       const defaultTool = DEFAULT_TOOLS.find((t) => t.name === toolName);
       if (!defaultTool && !this.options.commands[toolName]) continue;
 
-      const cmd =
-        this.options.commands[toolName] ||
-        `${path.join(binDir, defaultTool.bin)}${defaultTool.args ? ' ' + defaultTool.args : ''}`;
+      let cmd = this.options.commands[toolName];
+
+      // If no custom command, build default with config detection
+      if (!cmd) {
+        const binPath = path.join(binDir, defaultTool.bin);
+        let args = defaultTool.args;
+
+        // Add config flags if project configs exist and useProjectConfig is true
+        if (this.options.useProjectConfig) {
+          if (toolName === 'ESLint' && this.projectConfigs.eslint) {
+            args = `${args} --config ${this.projectConfigs.eslint}`;
+          } else if (toolName === 'Prettier' && this.projectConfigs.prettier) {
+            args = `${args} --config ${this.projectConfigs.prettier}`;
+          } else if (toolName === 'TypeScript' && this.projectConfigs.typescript) {
+            args = `--project ${this.projectConfigs.typescript} --noEmit`;
+          } else if (toolName === 'Knip' && this.projectConfigs.knip) {
+            args = `--config ${this.projectConfigs.knip}`;
+          }
+        }
+
+        cmd = `${binPath}${args ? ' ' + args : ''}`;
+      }
 
       const description =
         this.options.descriptions[toolName] ||
@@ -144,9 +234,10 @@ class CodeQualityChecker {
     const results = [];
     let allPassed = true;
 
-    console.log('\n� Professional Code Quality Check\n');
+    console.log('\n🔍 Professional Code Quality Check\n');
     console.log('─'.repeat(50));
-    console.log(`📦 Using ${pm} package manager\n`);
+    console.log(`📦 Using ${pm} package manager`);
+    console.log(`⚙️  Config: ${this.options.useProjectConfig ? 'Project configs' : 'Bundled configs'}\n`);
 
     if (showLogs) {
       console.log('📋 Detailed error logging enabled (--logs flag)\n');

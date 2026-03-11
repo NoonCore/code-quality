@@ -49,12 +49,18 @@ code-quality --version    # show version
 ```javascript
 const { CodeQualityChecker, runQualityCheck } = require('code-quality-lib');
 
-// Quick — run all checks with defaults
+// Quick — run all checks with defaults (uses project's config files)
 const result = await runQualityCheck();
 console.log(result.success ? 'All passed' : 'Some failed');
 
-// Custom — select tools, override commands
+// Use bundled configs instead of project's configs
 const checker = new CodeQualityChecker({
+  useProjectConfig: false, // use library's bundled .eslintrc, .prettierrc, etc.
+});
+await checker.run();
+
+// Custom — select tools, override commands
+const customChecker = new CodeQualityChecker({
   tools: ['TypeScript', 'ESLint'],
   packageManager: 'pnpm',
   commands: {
@@ -64,7 +70,7 @@ const checker = new CodeQualityChecker({
   loadEnv: false,
 });
 
-const result = await checker.run({ showLogs: true });
+const result = await customChecker.run({ showLogs: true });
 console.log(result.results); // per-tool results array
 ```
 
@@ -72,6 +78,7 @@ console.log(result.results); // per-tool results array
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
+| `useProjectConfig` | `boolean` | `true` | Use project's config files (`.eslintrc.js`, `.prettierrc`, etc.) instead of bundled configs |
 | `tools` | `string[]` | All 5 tools | Which tools to run |
 | `packageManager` | `'npm' \| 'bun' \| 'pnpm' \| 'yarn'` | auto-detected | Force a specific package manager |
 | `commands` | `Record<string, string>` | bundled paths | Custom commands per tool |

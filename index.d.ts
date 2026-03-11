@@ -1,6 +1,8 @@
 export interface CodeQualityOptions {
   /** Load environment variables from .env file (default: true) */
   loadEnv?: boolean;
+  /** Use project's own config files instead of bundled configs (default: true) */
+  useProjectConfig?: boolean;
   /** Array of tool names to run (default: all tools) */
   tools?: string[];
   /** Custom commands for each tool, keyed by tool name */
