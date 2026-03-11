@@ -804,6 +804,7 @@ if (require.main === module) {
     console.log('  --Prettier     Run only Prettier checks');
     console.log('  --Knip         Run only Knip checks');
     console.log('  --Snyk         Run only Snyk checks');
+    console.log('  --fix          Auto-fix issues when possible (ESLint, Prettier)');
     console.log('');
     console.log('Examples:');
     console.log('  code-quality                    # Run checks with defaults');
@@ -816,6 +817,9 @@ if (require.main === module) {
     console.log('  code-quality --TypeScript        # Run only TypeScript');
     console.log('  code-quality --Prettier          # Run only Prettier');
     console.log('  code-quality --ESLint --logs     # Run ESLint with verbose output');
+    console.log('  code-quality --ESLint --fix       # Fix ESLint issues automatically');
+    console.log('  code-quality --Prettier --fix     # Format code with Prettier');
+    console.log('  code-quality --ESLint --Prettier --fix --logs  # Fix both with logs');
     console.log('');
     console.log('Environment Variables:');
     console.log('  NODE_ENV                        # Set environment automatically');
@@ -863,12 +867,32 @@ if (require.main === module) {
         process.exit(1);
       }
       
-      console.log(`\n🔧 Running ${toolName} checks...\n`);
+      const useFix = args.includes('--fix');
+      const action = useFix ? 'fixing' : 'checking';
+      console.log(`\n🔧 Running ${toolName} ${action}...\n`);
       
       // Use custom command from config if available, otherwise use default
       let command = defaultTool.args;
       if (config.commands && config.commands[toolName]) {
         command = config.commands[toolName];
+      }
+      
+      // Add fix flag for tools that support it
+      if (useFix) {
+        if (toolName === 'ESLint') {
+          command = command.replace('. --ext', ' --fix . --ext');
+        } else if (toolName === 'Prettier') {
+          command = command.replace('--check', '--write');
+        } else if (toolName === 'Knip') {
+          // Knip doesn't have a fix mode, so we warn user
+          console.log(`⚠️  ${toolName} does not support auto-fix. Running checks only...`);
+        } else if (toolName === 'TypeScript') {
+          // TypeScript doesn't have a fix mode
+          console.log(`⚠️  ${toolName} does not support auto-fix. Running checks only...`);
+        } else if (toolName === 'Snyk') {
+          // Snyk has fix but it's for security vulnerabilities, not style
+          console.log(`⚠️  ${toolName} auto-fix not supported through --fix flag. Use 'snyk wizard' for security fixes.`);
+        }
       }
       
       // Build full command
@@ -881,7 +905,7 @@ if (require.main === module) {
       const result = checker.runCommand(fullCommand, defaultTool.description);
       
       const icon = result.success ? '✅' : '❌';
-      const status = result.success ? 'Passed' : 'Failed';
+      const status = result.success ? (useFix ? 'Fixed' : 'Passed') : 'Failed';
       
       console.log(`${icon} ${toolName}... ${status}`);
       
