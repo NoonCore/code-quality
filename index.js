@@ -713,6 +713,53 @@ async function runQualityCheck(options = {}) {
 
 // ─── Config Generation ────────────────────────────────────────────────────
 
+function initConfigFiles() {
+  const rootDir = process.cwd();
+  const libConfigDir = path.join(__dirname, '.code-quality');
+  
+  console.log('\n🚀 Initializing config files in root directory...\n');
+  
+  const configFiles = [
+    { src: 'eslint.config.mjs', dest: 'eslint.config.js', desc: 'ESLint configuration' },
+    { src: 'tsconfig.json', dest: 'tsconfig.json', desc: 'TypeScript configuration' },
+    { src: '.prettierrc', dest: '.prettierrc', desc: 'Prettier configuration' },
+    { src: '.prettierignore', dest: '.prettierignore', desc: 'Prettier ignore patterns' },
+  ];
+  
+  let copied = 0;
+  let skipped = 0;
+  
+  for (const file of configFiles) {
+    const srcPath = path.join(libConfigDir, file.src);
+    const destPath = path.join(rootDir, file.dest);
+    
+    if (fs.existsSync(destPath)) {
+      console.log(`⏭️  ${file.dest} already exists - skipped`);
+      skipped++;
+    } else if (fs.existsSync(srcPath)) {
+      fs.copyFileSync(srcPath, destPath);
+      console.log(`✅ Created ${file.dest} - ${file.desc}`);
+      copied++;
+    } else {
+      console.log(`⚠️  ${file.src} not found in library`);
+    }
+  }
+  
+  console.log('\n' + '─'.repeat(50));
+  console.log(`📊 Summary: ${copied} created, ${skipped} skipped`);
+  console.log('─'.repeat(50));
+  
+  if (copied > 0) {
+    console.log('\n✨ Config files initialized successfully!');
+    console.log('\n💡 Next steps:');
+    console.log('  1. Review and customize the config files');
+    console.log('  2. Run: code-quality');
+    console.log('  3. Fix issues: code-quality --fix\n');
+  } else {
+    console.log('\n✅ All config files already exist!\n');
+  }
+}
+
 function generateConfigFile() {
   const configDir = path.join(process.cwd(), '.code-quality');
   const configPath = path.join(configDir, 'config.json');
@@ -1076,6 +1123,7 @@ if (require.main === module) {
     console.log('  --help, -h     Show this help message');
     console.log('  --version, -v  Show version number');
     console.log('  --logs         Show detailed error logs');
+    console.log('  --init         Initialize config files in root directory (ESLint v9+)');
     console.log('  --config       Generate .code-quality.json configuration file');
     console.log('  --wizard       Run interactive setup wizard');
     console.log('  --env <name>   Set environment (development, ci, production)');
@@ -1088,6 +1136,7 @@ if (require.main === module) {
     console.log('');
     console.log('Examples:');
     console.log('  code-quality                    # Run checks with defaults');
+    console.log('  code-quality --init             # Create config files in root (for ESLint v9+)');
     console.log('  code-quality --wizard           # Run interactive wizard');
     console.log('  code-quality --config            # Generate config file');
     console.log('  code-quality --logs              # Run with verbose output');
@@ -1114,6 +1163,11 @@ if (require.main === module) {
   if (args.includes('--version') || args.includes('-v')) {
     const pkg = require('./package.json');
     console.log(pkg.version);
+    process.exit(0);
+  }
+
+  if (args.includes('--init')) {
+    initConfigFiles();
     process.exit(0);
   }
 
