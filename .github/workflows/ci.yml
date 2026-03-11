@@ -70,10 +70,83 @@ jobs:
         console.log('✅ Export:', typeof CodeQualityChecker);
         "
 
+  test-pnpm:
+    name: Test Library (pnpm)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '25.x'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: '10.x'
+        
+    - name: Install dependencies
+      run: pnpm install
+        
+    - name: Run tests
+      run: pnpm test
+      
+    - name: Test CLI
+      run: node index.js --help
+        
+    - name: Test library loading
+      run: |
+        node -e "
+        const { CodeQualityChecker } = require('./index.js');
+        console.log('✅ Library loads successfully with pnpm');
+        console.log('✅ Export:', typeof CodeQualityChecker);
+        "
+
+  test-yarn:
+    name: Test Library (Yarn)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '25.x'
+
+    - name: Enable Corepack
+      run: corepack enable
+
+    - name: Setup Yarn
+      run: corepack prepare yarn@4.13.0 --activate
+        
+    - name: Install dependencies
+      run: yarn install
+        
+    - name: Run tests
+      run: yarn test
+      
+    - name: Test CLI
+      run: node index.js --help
+        
+    - name: Test library loading
+      run: |
+        node -e "
+        const { CodeQualityChecker } = require('./index.js');
+        console.log('✅ Library loads successfully with Yarn');
+        console.log('✅ Export:', typeof CodeQualityChecker);
+        "
+
   publish:
     name: Publish to NPM
     runs-on: ubuntu-latest
-    needs: [test, test-bun]
+    needs: [test, test-bun, test-pnpm, test-yarn]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
     
