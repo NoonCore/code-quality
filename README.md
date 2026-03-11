@@ -100,6 +100,9 @@ bun add -D code-quality-lib && npx code-quality
 # Or with npm
 npm install -D code-quality-lib && npx code-quality
 
+# Or with yarn
+yarn add -D code-quality-lib && yarn code-quality
+
 # Or install globally
 npm install -g code-quality-lib
 code-quality
@@ -117,6 +120,9 @@ code-quality
 
 # Or use with npx (without installing)
 npx code-quality-lib
+
+# Or with yarn
+yarn code-quality
 ```
 
 ### As a Library
