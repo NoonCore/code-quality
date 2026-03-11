@@ -1,6 +1,6 @@
 {
   "name": "code-quality-lib",
-  "version": "2.6.0",
+  "version": "0.1.0",
   "description": "A configurable code quality checker library for Node.js projects",
   "main": "index.js",
   "types": "index.d.ts",
