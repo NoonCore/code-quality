@@ -122,7 +122,9 @@ const colors = {
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
-  white: '\x1b[37m'
+  white: '\x1b[37m',
+  dim: '\x1b[2m',
+  header: '\x1b[1m\x1b[36m'
 };
 
 function colorLog(message, color = 'reset') {
