@@ -19,6 +19,7 @@
   "ignoreDependencies": [
     "eslint-plugin-*",
     "@typescript-eslint/*",
+    "@eslint/js",
     "prettier",
     "@types/*",
     "typescript",
