@@ -568,13 +568,13 @@ class CodeQualityChecker {
       const errorLines = this._parseErrorLines(name, result.output)
 
       // Special handling for Knip - allow passing with warnings only
-      let finalResult = { name, description, ...result, ...counts, errorLines }
+      const finalResult = { name, description, ...result, ...counts, errorLines }
       if (name === 'Knip' && !result.success && counts.warnings > 0 && counts.errors === 0) {
         finalResult.success = true // Override success for Knip warnings only
       }
 
       // Show result - show warning icon for any tool with warnings
-      let actualSuccess = finalResult.success
+      const actualSuccess = finalResult.success
       let displayIcon = finalResult.success ? '✅ Done' : '❌ Failed'
 
       if (finalResult.success && counts.warnings > 0) {
@@ -880,7 +880,7 @@ function loadConfigFile() {
   if (fs.existsSync(newConfigPath)) {
     try {
       const content = fs.readFileSync(newConfigPath, 'utf8')
-      let config = JSON.parse(content)
+      const config = JSON.parse(content)
 
       // Migrate old format to new environment-based structure
       if (
@@ -924,7 +924,7 @@ function loadConfigFile() {
   if (fs.existsSync(oldConfigPath)) {
     try {
       const content = fs.readFileSync(oldConfigPath, 'utf8')
-      let config = JSON.parse(content)
+      const config = JSON.parse(content)
 
       // Migrate old format to new environment-based structure
       if (config.tools && !config.environments) {
@@ -1370,14 +1370,6 @@ if (require.main === module) {
       }
 
       console.log(`${icon} ${name}${status}`)
-
-      // Show individual error lines for failed tools only when --logs is used
-      if (!result.success && result.errorLines && result.errorLines.length > 0 && showLogs) {
-        console.log(`   📝 Error details:`)
-        for (const errorLine of result.errorLines) {
-          console.log(`   • ${errorLine}`)
-        }
-      }
     }
 
     console.log('\n' + '─'.repeat(50))
