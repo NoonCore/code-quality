@@ -127,7 +127,7 @@ jobs:
       run: corepack prepare yarn@4.13.0 --activate
         
     - name: Install dependencies
-      run: yarn install
+      run: yarn install --no-immutable
         
     - name: Run tests
       run: yarn test
