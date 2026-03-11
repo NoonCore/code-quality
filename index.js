@@ -163,19 +163,45 @@ const DEFAULT_TOOLS = [
 
 class CodeQualityChecker {
   constructor(options = {}) {
+    // Detect environment
+    const env = options.environment || process.env.NODE_ENV || process.env.CODE_QUALITY_ENV || 'development';
+    
     this.options = {
       loadEnv: options.loadEnv !== false,
       useProjectConfig: options.useProjectConfig !== false,
-      tools: options.tools || DEFAULT_TOOLS.map((t) => t.name),
+      tools: this._resolveToolsForEnvironment(options.tools, options.environments, env),
       commands: options.commands || {},
       descriptions: options.descriptions || {},
       packageManager: options.packageManager || detectPackageManager(),
+      environment: env,
+      environments: options.environments || {},
     };
 
     if (this.options.loadEnv) loadEnvFile();
 
     // Detect project configs if useProjectConfig is enabled
     this.projectConfigs = this.options.useProjectConfig ? detectProjectConfigs() : {};
+  }
+
+  _resolveToolsForEnvironment(tools, environments, env) {
+    // If environment-specific tools are defined
+    if (environments && environments[env] && environments[env].tools) {
+      return environments[env].tools;
+    }
+    
+    // If default tools are provided
+    if (tools) {
+      return tools;
+    }
+    
+    // Fallback to default tools based on environment
+    if (env === 'ci' || env === 'production' || env === 'test') {
+      // CI/CD: Run all tools for comprehensive checks
+      return DEFAULT_TOOLS.map((t) => t.name);
+    } else {
+      // Development: Run essential tools only
+      return ['ESLint', 'TypeScript', 'Prettier'];
+    }
   }
 
   _getChecks() {
@@ -294,9 +320,10 @@ class CodeQualityChecker {
     let step = 1;
 
     // Header
-    console.log('\n� Code Quality Setup');
+    console.log('\n🔧 Code Quality Setup');
     console.log('─'.repeat(50));
     console.log(`📦 Package Manager: ${pm}`);
+    console.log(`🌍 Environment: ${this.options.environment}`);
     console.log(`⚙️  Config: ${this.options.useProjectConfig ? 'Project configs' : 'Bundled configs'}`);
     console.log(`🔧 Tools: ${checks.length} quality checks\n`);
 
@@ -473,7 +500,18 @@ function generateConfigFile() {
   
   const config = {
     version: '1.0.0',
-    tools: ['ESLint', 'TypeScript', 'Prettier', 'Knip', 'Snyk'],
+    tools: undefined, // Use environment-based tools
+    environments: {
+      development: {
+        tools: ['ESLint', 'TypeScript', 'Prettier']
+      },
+      ci: {
+        tools: ['ESLint', 'TypeScript', 'Prettier', 'Knip', 'Snyk']
+      },
+      production: {
+        tools: ['ESLint', 'TypeScript', 'Prettier', 'Knip', 'Snyk']
+      }
+    },
     packageManager: detectPackageManager(),
     useProjectConfig: true,
     loadEnv: true,
@@ -617,17 +655,67 @@ async function runWizard() {
     }
   }
 
-  // Step 4: Load .env
+  // Step 4: Environment Configuration
+  console.log('\n🌍 Set up environment-specific tool sets?');
+  console.log('This allows different tools for development vs CI/CD');
+  const envConfigAnswer = await askQuestion(rl, 'Configure environments? (y/N): ');
+  const configureEnvironments = envConfigAnswer.toLowerCase().startsWith('y');
+  
+  let environments = {};
+  if (configureEnvironments) {
+    console.log('\n🔧 Configure development tools (default: ESLint, TypeScript, Prettier):');
+    const devTools = [];
+    for (const tool of allTools) {
+      const isDefaultYes = ['ESLint', 'TypeScript', 'Prettier'].includes(tool);
+      const prompt = isDefaultYes ? `[✓] ${tool}? (Y/n): ` : `[ ] ${tool}? (y/N): `;
+      const answer = await askQuestion(rl, prompt);
+      
+      if (isDefaultYes) {
+        if (!answer.toLowerCase().startsWith('n')) {
+          devTools.push(tool);
+        }
+      } else {
+        if (answer.toLowerCase().startsWith('y')) {
+          devTools.push(tool);
+        }
+      }
+    }
+    
+    console.log('\n🚀 Configure CI/CD tools (default: all tools):');
+    const ciTools = [];
+    for (const tool of allTools) {
+      const answer = await askQuestion(rl, `[✓] ${tool}? (Y/n): `);
+      if (!answer.toLowerCase().startsWith('n')) {
+        ciTools.push(tool);
+      }
+    }
+    
+    environments = {
+      development: { tools: devTools },
+      ci: { tools: ciTools },
+      production: { tools: ciTools }
+    };
+  }
+
+  // Step 5: Load .env
   console.log('\n🌍 Load .env file before running checks?');
   const envAnswer = await askQuestion(rl, 'Load .env? (Y/n): ');
   const loadEnv = !envAnswer.toLowerCase().startsWith('n');
 
-  // Step 5: Show summary and confirm
+  // Step 6: Show summary and confirm
   console.log('\n📋 Configuration Summary:');
   console.log('─'.repeat(50));
   console.log(`📦 Package Manager: ${selectedPm}`);
   console.log(`⚙️  Config: ${useProjectConfig ? 'Project configs' : 'Bundled configs'}`);
-  console.log(`🔧 Tools: ${selectedTools.join(', ')}`);
+  
+  if (configureEnvironments) {
+    console.log(`🌍 Environment Config: Enabled`);
+    console.log(`🔧 Development: ${environments.development.tools.join(', ')}`);
+    console.log(`🚀 CI/CD: ${environments.ci.tools.join(', ')}`);
+  } else {
+    console.log(`🔧 Tools: ${selectedTools.join(', ')}`);
+  }
+  
   console.log(`🌍 Load .env: ${loadEnv ? 'Yes' : 'No'}`);
   console.log('─'.repeat(50));
 
@@ -645,7 +733,8 @@ async function runWizard() {
     version: '1.0.0',
     packageManager: selectedPm,
     useProjectConfig,
-    tools: selectedTools,
+    tools: configureEnvironments ? undefined : selectedTools,
+    environments: configureEnvironments ? environments : undefined,
     loadEnv,
     generated: new Date().toISOString()
   };
@@ -709,14 +798,23 @@ if (require.main === module) {
     console.log('  --logs         Show detailed error logs');
     console.log('  --config       Generate .code-quality.json configuration file');
     console.log('  --wizard       Run interactive setup wizard');
+    console.log('  --env <name>   Set environment (development, ci, production)');
     console.log('');
     console.log('Examples:');
     console.log('  code-quality                    # Run checks with defaults');
     console.log('  code-quality --wizard           # Run interactive wizard');
     console.log('  code-quality --config            # Generate config file');
     console.log('  code-quality --logs              # Run with verbose output');
+    console.log('  code-quality --env ci            # Run CI/CD checks (all tools)');
+    console.log('  code-quality --env development   # Run dev checks (ESLint, TS, Prettier)');
     console.log('');
-    console.log('Runs TypeScript, ESLint, Prettier, Knip, and Snyk checks.');
+    console.log('Environment Variables:');
+    console.log('  NODE_ENV                        # Set environment automatically');
+    console.log('  CODE_QUALITY_ENV                # Override environment detection');
+    console.log('');
+    console.log('Default behavior:');
+    console.log('  - Development: ESLint, TypeScript, Prettier');
+    console.log('  - CI/Production: All tools (including Knip, Snyk)');
     process.exit(0);
   }
 
@@ -739,6 +837,15 @@ if (require.main === module) {
     return;
   }
 
+  // Parse environment flag
+  let environment = undefined;
+  const envIndex = args.findIndex(arg => arg === '--env');
+  if (envIndex !== -1 && args[envIndex + 1]) {
+    environment = args[envIndex + 1];
+    // Remove --env and its value from args
+    args.splice(envIndex, 2);
+  }
+
   // Load config file if exists, if not - run wizard automatically
   const config = loadConfigFile();
   if (!config) {
@@ -748,6 +855,11 @@ if (require.main === module) {
       process.exit(1);
     });
     return;
+  }
+
+  // Override environment if specified
+  if (environment) {
+    config.environment = environment;
   }
 
   const checker = new CodeQualityChecker(config);
