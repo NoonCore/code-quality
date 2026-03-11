@@ -508,6 +508,7 @@ class CodeQualityChecker {
 
   async run(options = {}) {
     const showLogs = options.showLogs || false
+    const useFix = options.useFix || false
 
     // Load .env file if enabled
     if (this.options.loadEnv) {
@@ -594,8 +595,41 @@ class CodeQualityChecker {
       if (actualSuccess) {
         process.stdout.write(`\r${stepNum}. ${name}... ${displayIcon}\n`)
       } else {
-        allPassed = false
-        process.stdout.write(`\r${stepNum}. ${name}... ${displayIcon}\n`)
+        // Auto-fix retry for ESLint and Prettier when --fix is used
+        if (useFix && (name === 'ESLint' || name === 'Prettier')) {
+          process.stdout.write(`\r${stepNum}. ${name}... ${displayIcon}\n`)
+
+          // Build fix command
+          let fixCommand = cmd
+          if (name === 'ESLint') {
+            fixCommand = cmd.replace('. --ext', ' --fix . --ext')
+          } else if (name === 'Prettier') {
+            fixCommand = cmd.replace('--check', '--write')
+          }
+
+          console.log(`\n🔧 Auto-fixing ${name}...`)
+          const fixResult = this.runCommand(fixCommand, description)
+
+          if (fixResult.success) {
+            console.log(`✅ ${name} fixed successfully!`)
+            // Re-run check to verify fix
+            const verifyResult = this.runCommand(cmd, description)
+            const verifyCounts = this._parseErrorCounts(name, verifyResult.output)
+
+            if (verifyResult.success || (name === 'Knip' && verifyCounts.errors === 0)) {
+              finalResult.success = true
+              finalResult.output = verifyResult.output
+              Object.assign(finalResult, verifyCounts)
+            } else {
+              console.log(`⚠️  ${name} fix applied but issues remain`)
+            }
+          } else {
+            console.log(`❌ Failed to auto-fix ${name}`)
+          }
+        } else {
+          allPassed = false
+          process.stdout.write(`\r${stepNum}. ${name}... ${displayIcon}\n`)
+        }
       }
 
       // Show details if logs enabled
@@ -1429,9 +1463,14 @@ if (require.main === module) {
   }
 
   const checker = new CodeQualityChecker(config)
-  checker.run({ showLogs: args.includes('--logs') }).then((result) => {
-    process.exit(result.success ? 0 : 1)
-  })
+  checker
+    .run({
+      showLogs: args.includes('--logs'),
+      useFix: args.includes('--fix'),
+    })
+    .then((result) => {
+      process.exit(result.success ? 0 : 1)
+    })
 }
 
 // ─── Exports ────────────────────────────────────────────────────────────────
