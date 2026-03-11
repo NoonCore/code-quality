@@ -95,7 +95,7 @@ bun add -D code-quality-lib
 
 ```bash
 # Install and run in one command
-bun add -D code-quality-lib && npx code-quality
+bun add -D code-quality-lib && bunx code-quality
 
 # Or with npm
 npm install -D code-quality-lib && npx code-quality
@@ -120,6 +120,9 @@ code-quality
 
 # Or use with npx (without installing)
 npx code-quality-lib
+
+# Or with bunx (without installing)
+bunx code-quality-lib
 
 # Or with yarn
 yarn code-quality
