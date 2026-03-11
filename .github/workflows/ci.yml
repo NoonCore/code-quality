@@ -60,10 +60,27 @@ jobs:
     - name: Install dependencies
       run: npm ci --prefer-offline --no-audit
 
+    - name: Check if version already published
+      id: version_check
+      run: |
+        LOCAL_VERSION=$(node -p "require('./package.json').version")
+        PUBLISHED=$(npm view code-quality-lib versions --json 2>/dev/null || echo "[]")
+        if echo "$PUBLISHED" | grep -q "\"$LOCAL_VERSION\""; then
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+          echo "⏭️ Version $LOCAL_VERSION already published, skipping"
+        else
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "📦 Version $LOCAL_VERSION not yet published, proceeding"
+        fi
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
     - name: Build package
+      if: steps.version_check.outputs.skip == 'false'
       run: npm pack
       
     - name: Publish to NPM
+      if: steps.version_check.outputs.skip == 'false'
       run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
