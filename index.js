@@ -6,6 +6,27 @@ const fs = require('fs');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
+
+// Handle --help flag
+if (args.includes('--help') || args.includes('-h')) {
+  console.log('Usage: code-quality [options]');
+  console.log('');
+  console.log('Options:');
+  console.log('  --help, -h     Show this help message');
+  console.log('  --version, -v  Show version number');
+  console.log('  --logs         Show detailed error logs');
+  console.log('');
+  console.log('Runs TypeScript, ESLint, Prettier, Knip, and Snyk checks.');
+  process.exit(0);
+}
+
+// Handle --version flag
+if (args.includes('--version') || args.includes('-v')) {
+  const pkg = require('./package.json');
+  console.log(pkg.version);
+  process.exit(0);
+}
+
 const showLogs = args.includes('--logs');
 
 // Load environment variables from .env file
