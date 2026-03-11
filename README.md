@@ -22,50 +22,50 @@
 
 ### npm
 ```bash
-# Install as dependency
-npm install code-quality-lib
+# Install as development dependency (recommended)
+npm install -D code-quality-lib
 
 # Install globally for CLI usage
 npm install -g code-quality-lib
 
 # Install from GitHub (development)
-npm install https://github.com/NoonCore/code-quality-lib.git
+npm install -D https://github.com/NoonCore/code-quality-lib.git
 ```
 
 ### bun (recommended - faster)
 ```bash
-# Install as dependency
-bun add code-quality-lib
+# Install as development dependency (recommended)
+bun add -D code-quality-lib
 
 # Install globally for CLI usage
 bun add -g code-quality-lib
 
 # Install from GitHub (development)
-bun add https://github.com/NoonCore/code-quality-lib.git
+bun add -D https://github.com/NoonCore/code-quality-lib.git
 ```
 
 ### pnpm
 ```bash
-# Install as dependency
-pnpm add code-quality-lib
+# Install as development dependency (recommended)
+pnpm add -D code-quality-lib
 
 # Install globally for CLI usage
 pnpm add -g code-quality-lib
 
 # Install from GitHub (development)
-pnpm add https://github.com/NoonCore/code-quality-lib.git
+pnpm add -D https://github.com/NoonCore/code-quality-lib.git
 ```
 
 ### yarn
 ```bash
-# Install as dependency
-yarn add code-quality-lib
+# Install as development dependency (recommended)
+yarn add -D code-quality-lib
 
 # Install globally for CLI usage
 yarn global add code-quality-lib
 
 # Install from GitHub (development)
-yarn add https://github.com/NoonCore/code-quality-lib.git
+yarn add -D https://github.com/NoonCore/code-quality-lib.git
 ```
 
 ## Usage
