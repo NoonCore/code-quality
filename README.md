@@ -18,6 +18,9 @@
 - ⚙️ Configurable tools and commands
 - 📚 TypeScript definitions included
 - 🔧 CLI and library usage
+- 📄 Detailed error reports for developers and AI agents
+- 🔍 --logs flag for verbose terminal output
+- 🤖 AI-friendly structured error information
 
 ## Installation
 
@@ -91,6 +94,9 @@ yarn add -D code-quality-lib && yarn code-quality
 # Run all quality checks
 code-quality
 
+# Run with detailed error logs in terminal
+code-quality --logs
+
 # Or use with npx (without installing)
 npx code-quality-lib
 
@@ -100,6 +106,28 @@ bunx code-quality-lib
 # Or with yarn
 yarn code-quality
 ```
+
+### Error Reporting
+
+The library automatically generates a detailed error report at `.quality-report.md` with:
+- ✅ Status of each quality check
+- 📋 Full error output for failed checks
+- 💡 Suggestions for fixing common issues
+- 🤖 AI-friendly structured information
+
+**Viewing Errors:**
+```bash
+# Silent mode (default) - errors saved to .quality-report.md
+code-quality
+
+# Verbose mode - errors shown in terminal + saved to report
+code-quality --logs
+
+# View the report
+cat .quality-report.md
+```
+
+**Note:** Add `.quality-report.md` to your `.gitignore` to keep reports local only.
 
 ### As a Library
 
