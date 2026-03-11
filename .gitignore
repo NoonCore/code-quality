@@ -118,3 +118,6 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Keep package-lock.json (needed for CI/CD)
+!package-lock.json
