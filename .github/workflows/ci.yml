@@ -29,13 +29,12 @@ jobs:
       run: npm test
       
     - name: Test CLI
-      run: |
-        npx code-quality --help || echo "CLI test completed"
+      run: node index.js --help
         
     - name: Test library loading
       run: |
         node -e "
-        const { CodeQualityChecker } = require('code-quality-lib');
+        const { CodeQualityChecker } = require('./index.js');
         console.log('✅ Library loads successfully');
         console.log('✅ Export:', typeof CodeQualityChecker);
         "
@@ -60,7 +59,7 @@ jobs:
         
     - name: Install dependencies
       run: npm ci --prefer-offline --no-audit
-      
+
     - name: Build package
       run: npm pack
       
