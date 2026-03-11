@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-03-11
+
+### Added
+- **`.code-quality/` directory structure** — All configs in one organized directory
+- **Reference config templates** — TypeScript, ESLint, Prettier, Knip configs included
+- **Interactive wizard** (`--wizard` flag) — Step-by-step setup with smart defaults
+- **Auto-wizard on first run** — Automatically starts wizard if no config exists
+- **Config modes** — Choose between project configs or reference configs
+- **Step-by-step terminal output** — Setup wizard-style progress with spinners
+- **Checkbox-style tool selection** — Individual tool enable/disable in wizard
+- **Smart config memory** — Remembers settings, skips questions on subsequent runs
+
+### Changed
+- **Config location** — Moved from `.code-quality.json` to `.code-quality/config.json`
+- **Tool resolution** — Uses project's `node_modules/.bin` first, library's bundled tools as fallback
+- **Wizard UX** — Yes/No prompts with sensible defaults (bundled configs default)
+- **Terminal output** — Professional step-by-step progress like `npx create-next-app`
+
+### Fixed
+- **Tool resolution priority** — Now correctly uses project's installed tools instead of bundled versions
+- **Custom commands** — Uses commands as-is without prepending paths
+- **Backward compatibility** — Old `.code-quality.json` still works with migration notice
+
+### Migration
+- Old `.code-quality.json` files are still supported
+- Run `code-quality --config` to create new `.code-quality/` directory structure
+- Reference configs automatically copied to `.code-quality/` on first setup
+
 ## [2.0.0] - 2026-03-11
 
 ### Added
