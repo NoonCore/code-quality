@@ -6,7 +6,6 @@
 [![Bun Version](https://img.shields.io/badge/bun-1.3.x-black)](https://bun.sh/)
 [![pnpm Version](https://img.shields.io/badge/pnpm-10.x-f69220)](https://pnpm.io/)
 [![Yarn Version](https://img.shields.io/badge/yarn-4.13.0-2c8ebb)](https://yarnpkg.com/)
-[![Downloads](https://img.shields.io/npm/dm/code-quality-lib.svg)](https://www.npmjs.com/package/code-quality-lib)
 [![CI/CD](https://github.com/NoonCore/code-quality-lib/actions/workflows/ci.yml/badge.svg)](https://github.com/NoonCore/code-quality-lib/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-included-blue)](https://www.typescriptlang.org/)
 
