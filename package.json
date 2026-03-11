@@ -1,0 +1,28 @@
+{
+  "name": "code-quality-lib",
+  "version": "1.0.0",
+  "description": "A configurable code quality checker library for Node.js projects",
+  "main": "index.js",
+  "bin": {
+    "code-quality": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "code-quality",
+    "eslint",
+    "prettier",
+    "typescript",
+    "snyk",
+    "knip",
+    "quality-check"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
