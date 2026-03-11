@@ -250,6 +250,16 @@ class CodeQualityChecker {
   }
 
   runCommand(command, description) {
+    // Check for Snyk token before running Snyk
+    if (description.includes('Security vulnerability scanning')) {
+      if (!process.env.SNYK_TOKEN) {
+        return {
+          success: false,
+          output: '⚠️  SNYK_TOKEN not found in environment variables. Please set SNYK_TOKEN in your .env file or run:\n  export SNYK_TOKEN=your_token_here\n\nYou can get a free token at: https://snyk.io/login'
+        };
+      }
+    }
+
     try {
       const output = execSync(command, { stdio: 'pipe', encoding: 'utf8' });
       return { success: true, output: (output || '').trim() };
@@ -448,6 +458,30 @@ class CodeQualityChecker {
 
   async run(options = {}) {
     const showLogs = options.showLogs || false;
+    
+    // Load .env file if enabled
+    if (this.options.loadEnv) {
+      try {
+        const dotenvPath = path.join(process.cwd(), '.env');
+        if (fs.existsSync(dotenvPath)) {
+          // Try to load dotenv as optional dependency
+          let dotenv;
+          try {
+            dotenv = require('dotenv');
+          } catch (dotenvError) {
+            // dotenv not installed, skip .env loading
+            console.log('⚠️  dotenv not installed. Install with: npm install dotenv');
+          }
+          
+          if (dotenv) {
+            dotenv.config({ path: dotenvPath });
+          }
+        }
+      } catch (error) {
+        // .env file missing or other error, continue without it
+      }
+    }
+    
     const checks = this._getChecks();
     const pm = this.options.packageManager;
     const runCmd = getRunPrefix(pm);
