@@ -725,11 +725,13 @@ function loadConfigFile() {
       let config = JSON.parse(content);
       
       // Migrate old format to new environment-based structure
-      if (config.tools && !config.environments) {
+      if (config.tools && Array.isArray(config.tools) && (!config.environments || Object.keys(config.environments).length === 0)) {
         console.log('🔄 Migrating configuration to environment-based format...');
+        console.log(`📝 Migrating tools: ${config.tools.join(', ')}`);
+        
         config.environments = {
           development: {
-            tools: config.tools
+            tools: [...config.tools] // Copy the array
           },
           ci: {
             tools: ['ESLint', 'TypeScript', 'Prettier', 'Knip', 'Snyk']
@@ -743,6 +745,9 @@ function loadConfigFile() {
         // Save migrated config
         fs.writeFileSync(newConfigPath, JSON.stringify(config, null, 2), 'utf8');
         console.log('✅ Configuration migrated successfully');
+        console.log(`📁 Updated config saved to: ${newConfigPath}`);
+      } else if (config.tools && Array.isArray(config.tools)) {
+        console.log('⚠️  Migration condition not met. Existing environments:', config.environments);
       }
       
       return config;
