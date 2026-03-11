@@ -39,10 +39,41 @@ jobs:
         console.log('✅ Export:', typeof CodeQualityChecker);
         "
 
+  test-bun:
+    name: Test Library (Bun)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: '1.3.x'
+        
+    - name: Install dependencies
+      run: bun install
+        
+    - name: Run tests
+      run: bun test/basic.test.js
+      
+    - name: Test CLI
+      run: bun index.js --help
+        
+    - name: Test library loading
+      run: |
+        bun -e "
+        const { CodeQualityChecker } = require('./index.js');
+        console.log('✅ Library loads successfully with Bun');
+        console.log('✅ Export:', typeof CodeQualityChecker);
+        "
+
   publish:
     name: Publish to NPM
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, test-bun]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
     
