@@ -264,9 +264,9 @@ class CodeQualityChecker {
     return checks
   }
 
-  runCommand(command, description) {
+  runCommand(command, description, skipSnykValidation = false) {
     // Check for Snyk token before running Snyk
-    if (description.includes('Security vulnerability scanning')) {
+    if (description.includes('Security vulnerability scanning') && !skipSnykValidation) {
       if (!process.env.SNYK_TOKEN) {
         return {
           success: false,
@@ -274,8 +274,46 @@ class CodeQualityChecker {
             '⚠️  SNYK_TOKEN not found in environment variables. Please set SNYK_TOKEN in your .env file or run:\n  export SNYK_TOKEN=your_token_here\n\nYou can get a free token at: https://snyk.io/login',
         }
       }
-      // Debug: Verify token is present
-      // console.log('DEBUG: SNYK_TOKEN present:', !!process.env.SNYK_TOKEN)
+      
+      // Validate Snyk token by clearing cache and testing
+      try {
+        // Clear Snyk cache to force token validation
+        const homeDir = require('os').homedir()
+        const snykConfigPath = path.join(homeDir, '.config', 'snyk')
+        if (fs.existsSync(snykConfigPath)) {
+          fs.rmSync(snykConfigPath, { recursive: true, force: true })
+        }
+        
+        const authCheck = execSync('npx snyk test --severity-threshold=high', {
+          stdio: 'pipe',
+          encoding: 'utf8',
+          env: process.env,
+          timeout: 15000, // 15 second timeout
+        })
+        
+        // If test succeeds, token is valid - return the result directly to avoid double run
+        if (authCheck.includes('✔ Tested') || authCheck.includes('No vulnerable paths found')) {
+          return { success: true, output: authCheck.trim() }
+        }
+      } catch (authError) {
+        // If auth check fails, check if it's authentication error
+        const authOutput = authError.stdout || authError.stderr || authError.message || ''
+        if (authOutput.includes('Authentication error') || authOutput.includes('401') || authOutput.includes('SNYK-0005')) {
+          return {
+            success: false,
+            output:
+              '❌ Snyk token validation failed. Token may be expired or invalid.\n\n' +
+              'To fix:\n' +
+              '1. Get a new token at: https://snyk.io/login\n' +
+              '2. Set SNYK_TOKEN in your .env file\n' +
+              '3. Or run: npx snyk auth\n\n' +
+              `Error: ${authOutput.trim()}`,
+          }
+        } else {
+          // Other errors - show warning but continue with main scan
+          console.log('⚠️  Snyk token validation inconclusive - proceeding with scan...')
+        }
+      }
     }
 
     try {
