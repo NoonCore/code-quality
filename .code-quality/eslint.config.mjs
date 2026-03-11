@@ -8,20 +8,22 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import sonarjs from 'eslint-plugin-sonarjs';
 import unicorn from 'eslint-plugin-unicorn';
 
-// Try to import optional plugins if available, but don't fail if not
+// Import optional plugins - these may or may not be installed
 let nextPlugin;
 let jsxA11yPlugin;
 
 try {
-  nextPlugin = require('eslint-plugin-next');
+  const nextModule = await import('eslint-plugin-next');
+  nextPlugin = nextModule.default || nextModule;
 } catch (e) {
-  // Next.js plugin not available, continue without it
+  // Next.js plugin not installed, skip Next.js rules
 }
 
 try {
-  jsxA11yPlugin = require('eslint-plugin-jsx-a11y');
+  const jsxA11yModule = await import('eslint-plugin-jsx-a11y');
+  jsxA11yPlugin = jsxA11yModule.default || jsxA11yModule;
 } catch (e) {
-  // jsx-a11y plugin not available, continue without it
+  // jsx-a11y plugin not installed, skip accessibility rules
 }
 
 const eslintConfig = [
