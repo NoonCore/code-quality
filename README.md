@@ -5,6 +5,8 @@
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![Downloads](https://img.shields.io/npm/dm/code-quality-lib.svg)](https://www.npmjs.com/package/code-quality-lib)
 [![CI/CD](https://github.com/NoonCore/code-quality-lib/actions/workflows/ci.yml/badge.svg)](https://github.com/NoonCore/code-quality-lib/actions/workflows/ci.yml)
+[![Package Managers](https://img.shields.io/badge/npm%20%7C%20bun%20%7C%20pnpm%20%7C%20yarn-support-blue)](https://github.com/NoonCore/code-quality-lib)
+[![TypeScript](https://img.shields.io/badge/TypeScript-included-blue)](https://www.typescriptlang.org/)
 
 > 🚀 A configurable code quality checker for Node.js that auto-detects your package manager and runs TypeScript, ESLint, Prettier, Knip, and Snyk.
 
