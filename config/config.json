@@ -1,9 +1,7 @@
 {
-  "version": "1.0.0",
   "packageManager": "bun",
   "useProjectConfig": false,
   "loadEnv": true,
-  "generated": "2026-03-11T17:58:56.121Z",
   "environments": {
     "development": {
       "tools": [

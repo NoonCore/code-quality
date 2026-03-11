@@ -931,8 +931,6 @@ function generateConfigFile() {
   }
 
   const config = {
-    version: '1.0.0',
-    tools: undefined, // Use environment-based tools
     environments: {
       development: {
         tools: ['ESLint', 'TypeScript', 'Prettier'],
@@ -944,24 +942,22 @@ function generateConfigFile() {
         tools: ['ESLint', 'TypeScript', 'Prettier', 'Knip', 'Snyk'],
       },
     },
-    packageManager: detectPackageManager(),
     useProjectConfig: true,
     loadEnv: true,
     commands: {
       ESLint: '. --ext .js,.jsx,.ts,.tsx',
       TypeScript: 'tsc --noEmit',
-      Prettier: '--check .',
-      Knip: '',
-      Snyk: 'test --severity-threshold=high',
+      Prettier: '. --check',
+      Knip: 'check',
+      Snyk: 'test',
     },
     descriptions: {
-      ESLint: 'Code linting and style checking',
-      TypeScript: 'Type checking and compilation',
-      Prettier: 'Code formatting validation',
+      ESLint: 'JavaScript/TypeScript linting',
+      TypeScript: 'TypeScript type checking',
+      Prettier: 'Code formatting',
       Knip: 'Dead code detection',
       Snyk: 'Security vulnerability scanning',
     },
-    generated: new Date().toISOString(),
   }
 
   try {
@@ -1234,13 +1230,10 @@ async function runWizard() {
 
   // Save config for next time in .code-quality/ directory
   const config = {
-    version: '1.0.0',
     packageManager: selectedPm,
     useProjectConfig,
-    tools: undefined, // Always use environments now
     environments: environments, // Always include environments
     loadEnv,
-    generated: new Date().toISOString(),
   }
 
   try {

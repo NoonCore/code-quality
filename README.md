@@ -185,7 +185,6 @@ Or configure environments in `.code-quality/config.json`:
 
 ```json
 {
-  "version": "1.0.0",
   "environments": {
     "development": {
       "tools": ["ESLint", "TypeScript", "Prettier"]
