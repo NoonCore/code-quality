@@ -395,8 +395,6 @@ class CodeQualityChecker {
               trimmedLine.includes('issues found') ||
               trimmedLine.includes('files listed') ||
               trimmedLine.includes('Checking formatting...') ||
-              trimmedLine.startsWith('[') || 
-              trimmedLine.startsWith('{') ||
               trimmedLine.startsWith('{') ||
               trimmedLine.match(/^\d+ files?/) || // "1 file" or "2 files"
               trimmedLine.match(/^.*\d+ files? checked/) // "2 files checked"
@@ -404,12 +402,19 @@ class CodeQualityChecker {
             continue;
           }
           
-          // Match file paths - various Prettier output formats
-          if (trimmedLine.includes('/') || trimmedLine.includes('.')) {
+          // Match Prettier [warn] filename format
+          if (trimmedLine.startsWith('[warn]')) {
+            const fileName = trimmedLine.replace(/^\[warn]\s*/, '').trim();
+            if (fileName && fileName !== 'Code style issues found in the above file') {
+              errorLines.push(`File needs formatting: ${fileName}`);
+            }
+          }
+          // Match other file path formats
+          else if (trimmedLine.includes('/') || trimmedLine.includes('.')) {
             // Clean up the file path and add context
             let filePath = trimmedLine;
             
-            // Remove any leading symbols or brackets
+            // Remove any leading symbols or brackets (but not [warn] which we handled above)
             filePath = filePath.replace(/^[\[\]\s]+/, '').replace(/[\[\]\s]+$/, '');
             
             // Skip if it looks like a directory or non-file
