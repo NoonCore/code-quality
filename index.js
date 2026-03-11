@@ -377,17 +377,45 @@ class CodeQualityChecker {
         const lines = output.split('\n');
         for (const line of lines) {
           const trimmedLine = line.trim();
-          // Match file paths that need formatting
-          if (trimmedLine && 
-              !trimmedLine.includes('Code style issues') && 
-              !trimmedLine.includes('formatted') &&
-              !trimmedLine.includes('issues found') &&
-              !trimmedLine.includes('files listed') &&
-              !trimmedLine.startsWith('[') && // Skip JSON output
-              !trimmedLine.startsWith('{')) { // Skip JSON output
-            errorLines.push(`File needs formatting: ${trimmedLine}`);
+          
+          // Skip generic messages and JSON output
+          if (!trimmedLine || 
+              trimmedLine.includes('Code style issues') || 
+              trimmedLine.includes('formatted') ||
+              trimmedLine.includes('issues found') ||
+              trimmedLine.includes('files listed') ||
+              trimmedLine.includes('Checking formatting...') ||
+              trimmedLine.startsWith('[') || 
+              trimmedLine.startsWith('{') ||
+              trimmedLine.startsWith('{') ||
+              trimmedLine.match(/^\d+ files?/) || // "1 file" or "2 files"
+              trimmedLine.match(/^.*\d+ files? checked/) // "2 files checked"
+             ) {
+            continue;
+          }
+          
+          // Match file paths - various Prettier output formats
+          if (trimmedLine.includes('/') || trimmedLine.includes('.')) {
+            // Clean up the file path and add context
+            let filePath = trimmedLine;
+            
+            // Remove any leading symbols or brackets
+            filePath = filePath.replace(/^[\[\]\s]+/, '').replace(/[\[\]\s]+$/, '');
+            
+            // Skip if it looks like a directory or non-file
+            if (filePath.endsWith('/') || !filePath.includes('.')) {
+              continue;
+            }
+            
+            errorLines.push(`File needs formatting: ${filePath}`);
           }
         }
+        
+        // If no specific files were found but Prettier failed, add a generic message
+        if (errorLines.length === 0 && output.includes('issues')) {
+          errorLines.push('Code formatting issues detected - run prettier --write . to fix');
+        }
+        
         break;
       }
       case 'Knip': {
