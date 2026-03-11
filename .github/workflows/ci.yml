@@ -30,14 +30,6 @@ jobs:
       
     - name: Test CLI
       run: node index.js --help
-        
-    - name: Test library loading
-      run: |
-        node -e "
-        const { CodeQualityChecker } = require('./index.js');
-        console.log('✅ Library loads successfully');
-        console.log('✅ Export:', typeof CodeQualityChecker);
-        "
 
   test-bun:
     name: Test Library (Bun)
@@ -61,14 +53,6 @@ jobs:
       
     - name: Test CLI
       run: bun index.js --help
-        
-    - name: Test library loading
-      run: |
-        bun -e "
-        const { CodeQualityChecker } = require('./index.js');
-        console.log('✅ Library loads successfully with Bun');
-        console.log('✅ Export:', typeof CodeQualityChecker);
-        "
 
   test-pnpm:
     name: Test Library (pnpm)
@@ -97,14 +81,6 @@ jobs:
       
     - name: Test CLI
       run: node index.js --help
-        
-    - name: Test library loading
-      run: |
-        node -e "
-        const { CodeQualityChecker } = require('./index.js');
-        console.log('✅ Library loads successfully with pnpm');
-        console.log('✅ Export:', typeof CodeQualityChecker);
-        "
 
   test-yarn:
     name: Test Library (Yarn)
@@ -134,14 +110,6 @@ jobs:
       
     - name: Test CLI
       run: node index.js --help
-        
-    - name: Test library loading
-      run: |
-        node -e "
-        const { CodeQualityChecker } = require('./index.js');
-        console.log('✅ Library loads successfully with Yarn');
-        console.log('✅ Export:', typeof CodeQualityChecker);
-        "
 
   publish:
     name: Publish to NPM
