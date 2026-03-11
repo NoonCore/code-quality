@@ -34,7 +34,11 @@
     "index.js",
     "index.d.ts",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    ".eslintrc.js",
+    ".prettierrc",
+    "knip.json",
+    "tsconfig.json"
   ],
   "repository": {
     "type": "git",
