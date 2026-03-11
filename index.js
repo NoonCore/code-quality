@@ -990,6 +990,7 @@ if (require.main === module) {
     const results = [];
     let allPassed = true;
     const checker = new CodeQualityChecker(config);
+    const useFix = args.includes('--fix');
     
     for (const toolFlag of specificTools) {
       const toolName = toolFlag.replace('--', '');
@@ -1000,7 +1001,6 @@ if (require.main === module) {
         process.exit(1);
       }
       
-      const useFix = args.includes('--fix');
       const action = useFix ? 'fixing' : 'checking';
       console.log(`\n🔧 Running ${toolName} ${action}...\n`);
       
