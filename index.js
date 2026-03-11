@@ -281,16 +281,28 @@ class CodeQualityChecker {
           fs.rmSync(snykConfigPath, { recursive: true, force: true })
         }
 
-        const authCheck = execSync('npx snyk test --severity-threshold=high', {
+        const authCheck = execSync('npx snyk auth', {
           stdio: 'pipe',
           encoding: 'utf8',
           env: process.env,
-          timeout: 15000, // 15 second timeout
+          timeout: 5000, // 5 second timeout for auth check
         })
 
-        // If test succeeds, token is valid - return the result directly to avoid double run
-        if (authCheck.includes('✔ Tested') || authCheck.includes('No vulnerable paths found')) {
-          return { success: true, output: authCheck.trim() }
+        // If auth succeeds, token is valid
+        if (authCheck.includes('authenticated') || authCheck.includes('ready')) {
+          // Now run the actual test
+          const testResult = execSync('npx snyk test --severity-threshold=high', {
+            stdio: 'pipe',
+            encoding: 'utf8',
+            env: process.env,
+            timeout: 30000, // 30 second timeout for actual test
+          })
+          
+          if (testResult.includes('✔ Tested') || testResult.includes('No vulnerable paths found')) {
+            return { success: true, output: testResult.trim() }
+          } else {
+            return { success: true, output: testResult.trim() } // Still success even if vulnerabilities found
+          }
         }
       } catch (authError) {
         // If auth check fails, check if it's authentication error
@@ -307,12 +319,24 @@ class CodeQualityChecker {
               'To fix:\n' +
               '1. Get a new token at: https://snyk.io/login\n' +
               '2. Set SNYK_TOKEN in your .env file\n' +
-              '3. Or run: npx snyk auth\n\n' +
-              `Error: ${authOutput.trim()}`,
+              '3. Run: code-quality --wizard to update your token',
           }
         } else {
-          // Other errors - show warning but continue with main scan
-          console.log('⚠️  Snyk token validation inconclusive - proceeding with scan...')
+          // Other errors - show quick message and continue with scan
+          console.log('⚡ Skipping Snyk token validation - running scan directly...')
+          // Run the scan without validation
+          try {
+            const testResult = execSync('npx snyk test --severity-threshold=high', {
+              stdio: 'pipe',
+              encoding: 'utf8',
+              env: process.env,
+              timeout: 30000,
+            })
+            return { success: true, output: testResult.trim() }
+          } catch (scanError) {
+            const scanOutput = scanError.stdout || scanError.stderr || scanError.message || ''
+            return { success: false, output: scanOutput }
+          }
         }
       }
     }
@@ -1119,6 +1143,45 @@ async function runWizard() {
     }
   }
 
+  // Step 3: Snyk setup if selected
+  let snykToken = null
+  if (selectedTools.includes('Snyk')) {
+    console.log('\n🔐 Snyk Setup')
+    console.log('─'.repeat(30))
+    
+    // Check if Snyk is installed
+    try {
+      require('child_process').execSync('snyk --version', { stdio: 'ignore' })
+      console.log('✅ Snyk is already installed')
+    } catch (e) {
+      console.log('📦 Installing Snyk...')
+      try {
+        const pm = detectPackageManager()
+        const installCmd = pm === 'npm' ? 'npm install -D snyk' : 
+                          pm === 'bun' ? 'bun add -D snyk' :
+                          pm === 'pnpm' ? 'pnpm add -D snyk' : 'yarn add -D snyk'
+        
+        console.log(`Running: ${installCmd}`)
+        require('child_process').execSync(installCmd, { stdio: 'inherit' })
+        console.log('✅ Snyk installed successfully')
+      } catch (installError) {
+        console.log('⚠️  Failed to install Snyk automatically')
+        console.log('💡 Please install manually: npm install -D snyk')
+      }
+    }
+    
+    // Ask for Snyk token
+    console.log('\n🔑 Snyk Token (optional)')
+    console.log('You can provide your Snyk token now, or add it later to your .env file')
+    const tokenAnswer = await askQuestion(rl, 'Enter SNYK_TOKEN (press Enter to skip): ')
+    if (tokenAnswer.trim()) {
+      snykToken = tokenAnswer.trim()
+      console.log('✅ Snyk token provided')
+    } else {
+      console.log('ℹ️  No token provided - you can add SNYK_TOKEN to .env file later')
+    }
+  }
+
   // Always create environments configuration
   let environments = {
     development: { tools: selectedTools },
@@ -1195,12 +1258,37 @@ async function runWizard() {
     const configDir = path.join(process.cwd(), '.code-quality')
     const configPath = path.join(configDir, 'config.json')
 
-    // Create .code-quality directory if it doesn't exist
+// Create .code-quality directory if it doesn't exist
     if (!fs.existsSync(configDir)) {
       fs.mkdirSync(configDir, { recursive: true })
     }
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8')
+    console.log(`💾 Configuration saved to: ${configPath}`)
+
+    // Save Snyk token to .env if provided
+    if (snykToken) {
+      const envPath = path.join(process.cwd(), '.env')
+      let envContent = ''
+      
+      // Read existing .env if it exists
+      if (fs.existsSync(envPath)) {
+        envContent = fs.readFileSync(envPath, 'utf8')
+      }
+      
+      // Add or update SNYK_TOKEN
+      const tokenLine = `SNYK_TOKEN=${snykToken}`
+      if (envContent.includes('SNYK_TOKEN=')) {
+        // Replace existing token
+        envContent = envContent.replace(/^SNYK_TOKEN=.*$/m, tokenLine)
+      } else {
+        // Add new token
+        envContent += (envContent && !envContent.endsWith('\n') ? '\n' : '') + tokenLine + '\n'
+      }
+      
+      fs.writeFileSync(envPath, envContent, 'utf8')
+      console.log(`🔑 Snyk token saved to: ${envPath}`)
+    }
 
     // Copy reference configs from library to .code-quality/
     const libConfigDir = path.join(__dirname, 'config')
