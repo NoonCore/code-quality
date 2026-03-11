@@ -11,6 +11,7 @@ import unicorn from 'eslint-plugin-unicorn';
 // Import optional plugins - these may or may not be installed
 let nextPlugin;
 let jsxA11yPlugin;
+let prettierPlugin;
 
 try {
   const nextModule = await import('eslint-plugin-next');
@@ -24,6 +25,13 @@ try {
   jsxA11yPlugin = jsxA11yModule.default || jsxA11yModule;
 } catch (e) {
   // jsx-a11y plugin not installed, skip accessibility rules
+}
+
+try {
+  const prettierModule = await import('eslint-plugin-prettier');
+  prettierPlugin = prettierModule.default || prettierModule;
+} catch (e) {
+  // eslint-plugin-prettier not installed, skip prettier rules
 }
 
 const eslintConfig = [
@@ -94,6 +102,7 @@ const eslintConfig = [
       import: importPlugin,
       ...(nextPlugin ? { '@next/next': nextPlugin } : {}),
       ...(jsxA11yPlugin ? { 'jsx-a11y': jsxA11yPlugin } : {}),
+      ...(prettierPlugin ? { prettier: prettierPlugin } : {}),
     },
     rules: {
       // React
@@ -182,12 +191,14 @@ const eslintConfig = [
 
       // Code quality
       'no-console': ['error', { allow: ['warn', 'error'] }],
-      'prettier/prettier': [
-        'error',
-        {
-          endOfLine: 'auto',
-        },
-      ],
+      ...(prettierPlugin ? {
+        'prettier/prettier': [
+          'error',
+          {
+            endOfLine: 'auto',
+          },
+        ],
+      } : {}),
       'padding-line-between-statements': [
         'warn',
         { blankLine: 'always', prev: '*', next: 'return' },
