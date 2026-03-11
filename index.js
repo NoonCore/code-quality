@@ -873,11 +873,18 @@ function initConfigFiles() {
 
   console.log('\n🚀 Initializing config files in root directory...\n')
 
+  // Create .code-quality directory if it doesn't exist
+  const codeQualityDir = path.join(rootDir, '.code-quality')
+  if (!fs.existsSync(codeQualityDir)) {
+    fs.mkdirSync(codeQualityDir, { recursive: true })
+  }
+
   const configFiles = [
     { src: 'eslint.config.mjs', dest: 'eslint.config.mjs', desc: 'ESLint configuration' },
     { src: 'tsconfig.json', dest: 'tsconfig.json', desc: 'TypeScript configuration' },
     { src: '.prettierrc', dest: '.prettierrc', desc: 'Prettier configuration' },
     { src: '.prettierignore', dest: '.prettierignore', desc: 'Prettier ignore patterns' },
+    { src: 'config.json', dest: '.code-quality/config.json', desc: 'Code quality configuration' },
   ]
 
   let copied = 0
