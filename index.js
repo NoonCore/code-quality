@@ -321,22 +321,22 @@ class CodeQualityChecker {
         break;
       }
       case 'Knip': {
-        // Knip shows issues per category with detailed counts
+        // Knip shows issues per category with detailed counts - treat as warnings
         const issueMatches = output.match(/\d+\s+(unused|unlisted|unresolved|duplicate)/gi);
         if (issueMatches) {
-          errors = issueMatches.reduce((sum, match) => {
+          warnings = issueMatches.reduce((sum, match) => {
             const num = parseInt(match.match(/\d+/)[0], 10);
             return sum + num;
           }, 0);
         } else {
-          // Fallback: count lines with issue keywords
+          // Fallback: count lines with issue keywords as warnings
           const lines = output.split('\n');
           for (const line of lines) {
             if (line.includes('unused') || line.includes('unlisted') || 
                 line.includes('unresolved') || line.includes('duplicate') ||
                 line.includes('Unused') || line.includes('Unlisted') ||
                 line.includes('Unresolved') || line.includes('Duplicate')) {
-              errors++;
+              warnings++;
             }
           }
         }
@@ -527,12 +527,28 @@ class CodeQualityChecker {
       // Stop spinner
       clearInterval(spinInterval);
 
-      // Show result
-      if (result.success) {
-        process.stdout.write(`\r${stepNum}. ${name}... ✅ Done\n`);
+      const counts = this._parseErrorCounts(name, result.output);
+      const errorLines = this._parseErrorLines(name, result.output);
+      
+      // Special handling for Knip - allow passing with warnings only
+      let finalResult = { ...result, ...counts, errorLines };
+      if (name === 'Knip' && !result.success && counts.warnings > 0 && counts.errors === 0) {
+        finalResult.success = true; // Override success for Knip warnings only
+      }
+      
+      // Show result - special handling for Knip warnings
+      let actualSuccess = finalResult.success;
+      let displayIcon = finalResult.success ? '✅ Done' : '❌ Failed';
+      
+      if (name === 'Knip' && finalResult.success && counts.warnings > 0 && counts.errors === 0) {
+        displayIcon = '⚠️ Done'; // Show warning icon for Knip with warnings
+      }
+      
+      if (actualSuccess) {
+        process.stdout.write(`\r${stepNum}. ${name}... ${displayIcon}\n`);
       } else {
         allPassed = false;
-        process.stdout.write(`\r${stepNum}. ${name}... ❌ Failed\n`);
+        process.stdout.write(`\r${stepNum}. ${name}... ${displayIcon}\n`);
       }
 
       // Show details if logs enabled
@@ -548,10 +564,8 @@ class CodeQualityChecker {
         }
         console.log('   ' + '─'.repeat(48));
       }
-
-      const counts = this._parseErrorCounts(name, result.output);
-      const errorLines = this._parseErrorLines(name, result.output);
-      results.push({ name, description, ...result, ...counts, errorLines });
+      
+      results.push(finalResult);
       step++;
     }
 
@@ -567,14 +581,24 @@ class CodeQualityChecker {
     
     // Show results with checkmarks/strikes and error counts
     for (const result of results) {
-      const icon = result.success ? '✅' : '❌';
+      let icon = result.success ? '✅' : '❌';
       const name = result.name.padEnd(12, ' ');
       let status = result.success ? 'Passed' : 'Failed';
+      
+      // Special handling for Knip - treat warnings as passed with warning icon
+      if (result.name === 'Knip' && result.warnings > 0 && result.errors === 0) {
+        icon = '⚠️';
+        status = 'Passed';
+      }
       
       if (!result.success && (result.errors > 0 || result.warnings > 0)) {
         const parts = [];
         if (result.errors > 0) parts.push(`${result.errors} error${result.errors !== 1 ? 's' : ''}`);
-        if (result.warnings > 0) parts.push(`${result.warnings} warning${result.warnings !== 1 ? 's' : ''}`);
+        if (result.warnings > 0) {
+          // Use "detected" for Knip warnings, "warnings" for others
+          const warningWord = result.name === 'Knip' ? 'detected' : 'warning';
+          parts.push(`${result.warnings} ${warningWord}${result.warnings !== 1 ? 's' : ''}`);
+        }
         status = `${status} (${parts.join(', ')})`;
       }
       
