@@ -94,33 +94,7 @@ public
 
 # Storybook build outputs
 .out
-.storybook-out
-
-# Temporary folders
 tmp/
 temp/
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Keep lock files for CI/CD
-!package-lock.json
-!yarn.lock
-!pnpm-lock.yaml
-!bun.lock
+*.tmp
+.quality-report.md

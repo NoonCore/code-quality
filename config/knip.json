@@ -1,0 +1,76 @@
+{
+  "entry": ["index.js", "index.d.ts"],
+  "project": ["package.json"],
+  "ignore": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "*.config.js",
+    "*.config.ts",
+    "test/**",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "examples/**"
+  ],
+  "ignoreBinaries": ["code-quality"],
+  "ignoreDependencies": [
+    "@types/*",
+    "eslint",
+    "prettier",
+    "typescript",
+    "vitest",
+    "storybook"
+  ],
+  "rules": {
+    "dependencies": {
+      "entries": {
+        "entryFiles": ["index.js", "index.d.ts"],
+        "ignore": []
+      },
+      "exports": {
+        "ignore": []
+      },
+      "files": {
+        "ignore": [
+          "test/**",
+          "**/*.test.*",
+          "**/*.spec.*",
+          "examples/**"
+        ]
+      },
+      "classMembers": {
+        "ignore": []
+      },
+      "enums": {
+        "ignore": []
+      },
+      "enumMembers": {
+        "ignore": []
+      },
+      "types": {
+        "ignore": []
+      }
+    },
+    "exports": {
+      "ignore": []
+    },
+    "files": {
+      "ignore": [
+        "test/**",
+        "**/*.test.*",
+        "**/*.spec.*",
+        "examples/**"
+      ]
+    },
+    "duplicates": {
+      "ignore": []
+    },
+    "unlisted": {
+      "ignore": []
+    },
+    "unresolved": {
+      "ignore": []
+    }
+  }
+}
