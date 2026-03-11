@@ -59,7 +59,9 @@ function UserProfile({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchUser(userId).then(setUser).finally(() => setLoading(false))
+    fetchUser(userId)
+      .then(setUser)
+      .finally(() => setLoading(false))
   }, [userId])
 
   if (loading) return <Spinner />
@@ -69,7 +71,7 @@ function UserProfile({ userId }: { userId: string }) {
 // ❌ DON'T — hook inside condition
 function UserProfile({ userId }: { userId: string }) {
   if (userId) {
-    const [user, setUser] = useState(null)  // ERROR: hook in condition
+    const [user, setUser] = useState(null) // ERROR: hook in condition
   }
 }
 ```
@@ -82,7 +84,7 @@ Include all referenced values in `useEffect` / `useCallback` / `useMemo` depende
 // ✅ DO
 useEffect(() => {
   fetchData(userId, token)
-}, [userId, token])  // all dependencies listed
+}, [userId, token]) // all dependencies listed
 
 const handleSubmit = useCallback(() => {
   submitForm(formData)
@@ -91,7 +93,7 @@ const handleSubmit = useCallback(() => {
 // ⚠️ WARNING — missing dependency
 useEffect(() => {
   fetchData(userId, token)
-}, [userId])  // 'token' is missing
+}, [userId]) // 'token' is missing
 ```
 
 ### Strategies for Dependency Warnings
@@ -142,7 +144,9 @@ export function UserCard({ user }: { user: User }) {
 }
 
 // ⚠️ WARNING — non-component function exported alongside component
-export function formatUser(user: User) { return user.name }  // move to utils
+export function formatUser(user: User) {
+  return user.name
+} // move to utils
 export function UserCard({ user }: { user: User }) {
   return <div>{formatUser(user)}</div>
 }
@@ -195,17 +199,26 @@ function Form({ onSubmit, onChange }: Props) {
 
 ```tsx
 // ✅ DO — clean patterns
-{isLoading && <Spinner />}
-{error ? <ErrorMessage error={error} /> : <Content data={data} />}
-{items.length > 0 && <List items={items} />}
+{
+  isLoading && <Spinner />
+}
+{
+  error ? <ErrorMessage error={error} /> : <Content data={data} />
+}
+{
+  items.length > 0 && <List items={items} />
+}
 
 // ❌ DON'T — number 0 renders as text
-{items.length && <List items={items} />}  // renders "0" when empty!
+{
+  items.length && <List items={items} />
+} // renders "0" when empty!
 ```
 
 ## JSX Formatting
 
 Follow Prettier rules for JSX:
+
 - Single quotes for JSX attributes
 - Closing bracket on new line for multi-line JSX
 - Self-close tags without children

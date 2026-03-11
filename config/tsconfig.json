@@ -27,16 +27,6 @@
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": false
   },
-  "include": [
-    "index.js",
-    "index.d.ts",
-    "test/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    "coverage",
-    "examples"
-  ]
+  "include": ["index.js", "index.d.ts", "test/**/*"],
+  "exclude": ["node_modules", "dist", "build", "coverage", "examples"]
 }

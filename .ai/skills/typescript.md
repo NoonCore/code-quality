@@ -7,6 +7,7 @@ This project uses strict TypeScript configuration targeting ES2022. Follow these
 All strict checks are enabled. This means:
 
 ### No Implicit `any`
+
 Every variable, parameter, and return type must be explicitly typed or inferable:
 
 ```ts
@@ -16,12 +17,14 @@ function greet(name: string): string {
 }
 
 // ❌ DON'T
-function greet(name) {  // implicit 'any'
+function greet(name) {
+  // implicit 'any'
   return `Hello, ${name}`
 }
 ```
 
 ### Strict Null Checks
+
 `null` and `undefined` are distinct types. Handle them explicitly:
 
 ```ts
@@ -38,11 +41,12 @@ if (user) {
 
 // ❌ DON'T
 function getUser(id: string): User {
-  return users.get(id)  // could be undefined
+  return users.get(id) // could be undefined
 }
 ```
 
 ### Strict Property Initialization
+
 Class properties must be initialized in constructor or declaration:
 
 ```ts
@@ -58,7 +62,7 @@ class Service {
 
 // ❌ DON'T
 class Service {
-  private name: string  // not initialized — error
+  private name: string // not initialized — error
 }
 ```
 
@@ -69,20 +73,20 @@ class Service {
 ```ts
 // ✅ DO
 const items = ['a', 'b', 'c']
-const first = items[0]  // type: string | undefined
+const first = items[0] // type: string | undefined
 if (first) {
   console.warn(first.toUpperCase())
 }
 
 const map: Record<string, number> = { a: 1 }
-const value = map['key']  // type: number | undefined
+const value = map['key'] // type: number | undefined
 if (value !== undefined) {
   process(value)
 }
 
 // ❌ DON'T
 const items = ['a', 'b', 'c']
-console.warn(items[0].toUpperCase())  // might be undefined
+console.warn(items[0].toUpperCase()) // might be undefined
 ```
 
 ## Exact Optional Properties
@@ -96,11 +100,11 @@ interface Config {
   debug?: boolean
 }
 
-const config: Config = { name: 'app' }           // ok — omit property
-const config2: Config = { name: 'app', debug: true }  // ok — set value
+const config: Config = { name: 'app' } // ok — omit property
+const config2: Config = { name: 'app', debug: true } // ok — set value
 
 // ❌ DON'T
-const config: Config = { name: 'app', debug: undefined }  // error!
+const config: Config = { name: 'app', debug: undefined } // error!
 ```
 
 If you need to allow `undefined`, declare the type explicitly:
@@ -108,7 +112,7 @@ If you need to allow `undefined`, declare the type explicitly:
 ```ts
 interface Config {
   name: string
-  debug?: boolean | undefined  // now undefined is allowed
+  debug?: boolean | undefined // now undefined is allowed
 }
 ```
 
@@ -152,7 +156,8 @@ class Dog extends Animal {
 
 // ❌ DON'T
 class Dog extends Animal {
-  speak(): string {  // missing 'override'
+  speak(): string {
+    // missing 'override'
     return 'Woof!'
   }
 }
@@ -179,7 +184,7 @@ switch (action) {
 switch (action) {
   case 'start':
     startProcess()
-  case 'stop':   // falls through from 'start'!
+  case 'stop': // falls through from 'start'!
     stopProcess()
     break
 }
@@ -212,5 +217,5 @@ export function Button() {
 import { MyComponent } from './MyComponent'
 
 // ❌ DON'T
-import { MyComponent } from './mycomponent'  // wrong casing
+import { MyComponent } from './mycomponent' // wrong casing
 ```

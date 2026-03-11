@@ -66,21 +66,21 @@ The wizard will guide you through:
 Let's configure your quality checks!
 
 📦 Detected package manager: npm
-Use npm? (Y/n): 
+Use npm? (Y/n):
 
 ⚙️  Use project config files (.eslintrc, .prettierrc, etc.)?
 Answer "No" to use bundled configs from code-quality-lib
-Use project configs? (y/N): 
+Use project configs? (y/N):
 
 🔧 Select tools to run (default = all checked):
-[✓] TypeScript? (Y/n): 
-[✓] ESLint? (Y/n): 
-[✓] Prettier? (Y/n): 
-[✓] Knip? (Y/n): 
-[✓] Snyk? (Y/n): 
+[✓] TypeScript? (Y/n):
+[✓] ESLint? (Y/n):
+[✓] Prettier? (Y/n):
+[✓] Knip? (Y/n):
+[✓] Snyk? (Y/n):
 
 🌍 Load .env file before running checks?
-Load .env? (Y/n): 
+Load .env? (Y/n):
 
 📋 Configuration Summary:
 ──────────────────────────────────────────────────
@@ -89,10 +89,11 @@ Load .env? (Y/n):
 🔧 Tools: TypeScript, ESLint, Prettier, Knip, Snyk
 🌍 Load .env: Yes
 ──────────────────────────────────────────────────
-Run checks with these settings? (Y/n): 
+Run checks with these settings? (Y/n):
 ```
 
 **Smart Features:**
+
 - **Remember settings** — First run creates `.code-quality.json`, future runs skip questions
 - **Yes/No questions** — Simple Y/n prompts with sensible defaults
 - **Checkbox-style tools** — Each tool can be individually enabled/disabled
@@ -188,43 +189,47 @@ code-quality    # uses your custom config
 Or use it programmatically:
 
 ```javascript
-const config = require('./.code-quality/config.json');
-const checker = new CodeQualityChecker(config);
-await checker.run();
+const config = require('./.code-quality/config.json')
+const checker = new CodeQualityChecker(config)
+await checker.run()
 ```
 
 ### Config Modes
 
 **Use Project Configs (Default)**
+
 ```json
 {
   "useProjectConfig": true
 }
 ```
+
 Uses your project's existing config files (`.eslintrc.js`, `.prettierrc`, `tsconfig.json`, etc.)
 
 **Use Reference Configs**
+
 ```json
 {
   "useProjectConfig": false
 }
 ```
+
 Uses reference configs from `.code-quality/` directory as starting point for new projects
 
 ## Library Usage
 
 ```javascript
-const { CodeQualityChecker, runQualityCheck } = require('code-quality-lib');
+const { CodeQualityChecker, runQualityCheck } = require('code-quality-lib')
 
 // Quick — run all checks with defaults (uses project's config files)
-const result = await runQualityCheck();
-console.log(result.success ? 'All passed' : 'Some failed');
+const result = await runQualityCheck()
+console.log(result.success ? 'All passed' : 'Some failed')
 
 // Use bundled configs instead of project's configs
 const checker = new CodeQualityChecker({
   useProjectConfig: false, // use library's bundled .eslintrc, .prettierrc, etc.
-});
-await checker.run();
+})
+await checker.run()
 
 // Custom — select tools, override commands
 const customChecker = new CodeQualityChecker({
@@ -235,22 +240,22 @@ const customChecker = new CodeQualityChecker({
     ESLint: 'eslint src/ --ext .ts,.tsx',
   },
   loadEnv: false,
-});
+})
 
-const result = await customChecker.run({ showLogs: true });
-console.log(result.results); // per-tool results array
+const result = await customChecker.run({ showLogs: true })
+console.log(result.results) // per-tool results array
 ```
 
 ## Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `useProjectConfig` | `boolean` | `true` | Use project's config files (`.eslintrc.js`, `.prettierrc`, etc.) instead of bundled configs |
-| `tools` | `string[]` | All 5 tools | Which tools to run |
-| `packageManager` | `'npm' \| 'bun' \| 'pnpm' \| 'yarn'` | auto-detected | Force a specific package manager |
-| `commands` | `Record<string, string>` | bundled paths | Custom commands per tool |
-| `descriptions` | `Record<string, string>` | built-in | Custom descriptions per tool |
-| `loadEnv` | `boolean` | `true` | Load `.env` file |
+| Option             | Type                                 | Default       | Description                                                                                 |
+| ------------------ | ------------------------------------ | ------------- | ------------------------------------------------------------------------------------------- |
+| `useProjectConfig` | `boolean`                            | `true`        | Use project's config files (`.eslintrc.js`, `.prettierrc`, etc.) instead of bundled configs |
+| `tools`            | `string[]`                           | All 5 tools   | Which tools to run                                                                          |
+| `packageManager`   | `'npm' \| 'bun' \| 'pnpm' \| 'yarn'` | auto-detected | Force a specific package manager                                                            |
+| `commands`         | `Record<string, string>`             | bundled paths | Custom commands per tool                                                                    |
+| `descriptions`     | `Record<string, string>`             | built-in      | Custom descriptions per tool                                                                |
+| `loadEnv`          | `boolean`                            | `true`        | Load `.env` file                                                                            |
 
 ## Tool Resolution
 
@@ -261,6 +266,7 @@ The library intelligently resolves tools in this order:
 3. **Custom commands** — If you specify custom commands in config, uses them as-is
 
 This means:
+
 - ✅ Uses your project's tool versions and configurations by default
 - ✅ Works out-of-the-box with bundled tools as fallback
 - ✅ Custom commands use tools from your project's PATH
@@ -269,13 +275,13 @@ This means:
 
 All tools are included as dependencies for fallback:
 
-| Tool | Description |
-|------|-------------|
-| **TypeScript** | Type checking (`tsc --noEmit`) |
-| **ESLint** | Linting with plugins (react, sonarjs, unicorn, import, prettier) |
-| **Prettier** | Code formatting validation |
-| **Knip** | Dead code and unused export detection |
-| **Snyk** | Security vulnerability scanning |
+| Tool           | Description                                                      |
+| -------------- | ---------------------------------------------------------------- |
+| **TypeScript** | Type checking (`tsc --noEmit`)                                   |
+| **ESLint**     | Linting with plugins (react, sonarjs, unicorn, import, prettier) |
+| **Prettier**   | Code formatting validation                                       |
+| **Knip**       | Dead code and unused export detection                            |
+| **Snyk**       | Security vulnerability scanning                                  |
 
 ## Package Manager Detection
 
@@ -290,6 +296,7 @@ Automatically detected by lock file presence:
 ## Error Reporting
 
 Every run generates `.quality-report.md` with:
+
 - Status of each check (pass/fail)
 - Full error output for failed checks
 - AI-friendly structured information for automated fixes
@@ -307,6 +314,7 @@ This library includes `.ai/skills/` — markdown files that teach AI coding assi
 ## Testing & CI/CD
 
 Tested on every push across 4 runtimes:
+
 - **Node.js 25.x** (npm)
 - **Bun 1.3.x**
 - **pnpm 10.x**

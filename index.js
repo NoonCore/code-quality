@@ -33,11 +33,6 @@ function detectPackageManager() {
   return 'npm'
 }
 
-function getExecPrefix(pm) {
-  const map = { bun: 'bunx', pnpm: 'pnpm dlx', yarn: 'yarn dlx', npm: 'npx' }
-  return map[pm] || 'npx'
-}
-
 function getRunPrefix(pm) {
   const map = { bun: 'bun run', pnpm: 'pnpm run', yarn: 'yarn', npm: 'npm run' }
   return map[pm] || 'npm run'
@@ -508,7 +503,7 @@ class CodeQualityChecker {
           let dotenv
           try {
             dotenv = require('dotenv')
-          } catch (dotenvError) {
+          } catch (_dotenvError) {
             // dotenv not installed, skip .env loading
             console.log('⚠️  dotenv not installed. Install with: npm install dotenv')
           }
@@ -517,7 +512,7 @@ class CodeQualityChecker {
             dotenv.config({ path: dotenvPath })
           }
         }
-      } catch (error) {
+      } catch (_error) {
         // .env file missing or other error, continue without it
       }
     }
@@ -1155,7 +1150,7 @@ async function runWizard() {
 
     console.log(`\n💾 Configuration saved to: ${configPath}`)
     console.log('📝 Reference config files copied to .code-quality/')
-  } catch (error) {
+  } catch (_error) {
     console.warn('\n⚠️  Could not save configuration file')
   }
 

@@ -5,12 +5,14 @@ Thank you for your interest in contributing! This document provides guidelines f
 ## Development Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/NoonCore/code-quality-lib.git
    cd code-quality-lib
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    # or
@@ -65,6 +67,7 @@ code-quality-lib/
 ## CI/CD
 
 All PRs are automatically tested on:
+
 - Node.js 25.x (npm)
 - Bun 1.3.x
 - pnpm 10.x

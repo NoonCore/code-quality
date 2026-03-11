@@ -33,12 +33,7 @@
         "ignore": []
       },
       "files": {
-        "ignore": [
-          "test/**",
-          "**/*.test.*",
-          "**/*.spec.*",
-          "examples/**"
-        ]
+        "ignore": ["test/**", "**/*.test.*", "**/*.spec.*", "examples/**"]
       },
       "classMembers": {
         "ignore": []
@@ -57,12 +52,7 @@
       "ignore": []
     },
     "files": {
-      "ignore": [
-        "test/**",
-        "**/*.test.*",
-        "**/*.spec.*",
-        "examples/**"
-      ]
+      "ignore": ["test/**", "**/*.test.*", "**/*.spec.*", "examples/**"]
     },
     "duplicates": {
       "ignore": []

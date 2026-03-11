@@ -9,6 +9,7 @@ Knip detects unused files, exports, dependencies, and types. Follow these rules 
 ## Entry Points
 
 The project's entry points are:
+
 - `index.js` — main CLI/library entry
 - `index.d.ts` — TypeScript type definitions
 
@@ -70,7 +71,7 @@ Every `import` or `require` must have a corresponding entry in `package.json`:
 
 ```ts
 // ❌ DON'T — dayjs is imported but not in package.json
-import dayjs from 'dayjs'  // Knip: unlisted dependency
+import dayjs from 'dayjs' // Knip: unlisted dependency
 ```
 
 ## Files
@@ -144,6 +145,7 @@ enum Status { Active, Inactive, Archived }
 ## Ignored Patterns
 
 The following are **excluded** from Knip analysis:
+
 - `test/**` and `**/*.test.*` — test files
 - `**/*.spec.*` — spec files
 - `examples/**` — example code
@@ -153,6 +155,7 @@ The following are **excluded** from Knip analysis:
 ### Ignored Dependencies
 
 These dependencies are allowed even if not directly imported (used by tools):
+
 - `@types/*` — TypeScript type packages
 - `eslint`, `prettier`, `typescript` — dev tools
 - `vitest`, `storybook` — testing/docs tools

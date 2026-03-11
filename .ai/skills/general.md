@@ -23,6 +23,7 @@
 ## Universal Rules
 
 ### Variables & Constants
+
 - Always use `const` for values that don't change
 - Never use `var` — use `let` only when reassignment is needed
 - Prefix unused function parameters with `_`
@@ -35,11 +36,12 @@ const handler = (_event, data) => process(data)
 
 // ❌ DON'T
 var MAX_RETRIES = 3
-let count = 0  // if never reassigned, use const
-const handler = (event, data) => process(data)  // unused param without _
+let count = 0 // if never reassigned, use const
+const handler = (event, data) => process(data) // unused param without _
 ```
 
 ### Console & Debugging
+
 - Avoid `console.log` — use `console.warn` or `console.error` instead
 - Never leave `debugger` statements in code
 
@@ -54,6 +56,7 @@ debugger
 ```
 
 ### Error Handling
+
 - Always handle errors explicitly
 - Provide meaningful error messages
 - Use try/catch for async operations
@@ -73,6 +76,7 @@ const result = await fetchData() // unhandled rejection
 ```
 
 ### Naming Conventions
+
 - **Files**: kebab-case (`my-component.ts`)
 - **Variables/Functions**: camelCase (`getUserName`)
 - **Classes**: PascalCase (`CodeQualityChecker`)
@@ -81,18 +85,21 @@ const result = await fetchData() // unhandled rejection
 - **Booleans**: prefix with `is`, `has`, `should`, `can` (`isLoading`, `hasError`)
 
 ### Comments
+
 - Write self-documenting code; avoid obvious comments
 - Use JSDoc for public API functions
 - Use `TODO:` for planned improvements
 - Use `FIXME:` for known issues
 
 ### Dependencies
+
 - Every dependency in `package.json` must be used
 - Every import must resolve to an installed package
 - Remove unused dependencies promptly
 - Prefer built-in Node.js modules over third-party when possible
 
 ### Testing
+
 - Test files go in `test/` directory
 - Test file naming: `*.test.js` or `*.spec.js`
 - Tests should not run external tools or make network calls

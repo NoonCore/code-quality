@@ -49,6 +49,7 @@
   "files": [
     "index.js",
     "index.d.ts",
+    ".code-quality/",
     "README.md",
     "LICENSE"
   ],

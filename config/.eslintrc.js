@@ -41,37 +41,30 @@ module.exports = {
     '@typescript-eslint/prefer-nullish-coalescing': 'error',
     '@typescript-eslint/prefer-optional-chain': 'error',
     '@typescript-eslint/no-non-null-assertion': 'warn',
-    
+
     // React
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 'off',
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
     'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-    
+
     // Code Quality
     'sonarjs/cognitive-complexity': ['warn', 15],
     'sonarjs/no-duplicate-string': 'warn',
     'sonarjs/no-identical-functions': 'warn',
-    
+
     // Best Practices
     'unicorn/no-array-for-each': 'error',
     'unicorn/prefer-array-some': 'error',
     'unicorn/no-new-array': 'error',
     'unicorn/prefer-node-protocol': 'error',
-    
+
     // Import/Export
     'import/order': [
       'error',
       {
-        groups: [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index',
-        ],
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
         'newlines-between': 'always',
         alphabetize: {
           order: 'asc',
@@ -79,10 +72,10 @@ module.exports = {
         },
       },
     ],
-    
+
     // Prettier (conflicts handled by eslint-config-prettier)
     'prettier/prettier': 'error',
-    
+
     // General
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'no-debugger': 'error',
@@ -118,4 +111,4 @@ module.exports = {
       },
     },
   ],
-};
+}

@@ -8,17 +8,17 @@ Imports **must** be grouped and sorted alphabetically within each group, separat
 
 ```ts
 // ✅ DO — correct order with blank lines between groups
-import fs from 'node:fs'               // 1. builtin (node: protocol required)
+import fs from 'node:fs' // 1. builtin (node: protocol required)
 import path from 'node:path'
 
-import express from 'express'          // 2. external (npm packages)
+import express from 'express' // 2. external (npm packages)
 import React from 'react'
 
-import { db } from '@/lib/database'    // 3. internal (aliases like @/)
+import { db } from '@/lib/database' // 3. internal (aliases like @/)
 
-import { Parent } from '../Parent'     // 4. parent
+import { Parent } from '../Parent' // 4. parent
 
-import { Sibling } from './Sibling'    // 5. sibling
+import { Sibling } from './Sibling' // 5. sibling
 
 import styles from './index.module.css' // 6. index
 ```
@@ -32,6 +32,7 @@ import { db } from '@/lib/database'
 ```
 
 **Key rules:**
+
 - Groups: `builtin` → `external` → `internal` → `parent` → `sibling` → `index`
 - Blank line between each group
 - Alphabetical within each group (case-insensitive)
@@ -54,6 +55,7 @@ import path from 'path'
 ## TypeScript-Specific Rules
 
 ### No Unused Variables
+
 Every declared variable must be used. Prefix intentionally unused parameters with `_`:
 
 ```ts
@@ -66,6 +68,7 @@ const handleClick = (event: MouseEvent, id: string) => fetchItem(id) // 'event' 
 ```
 
 ### Avoid `any` Type
+
 Use proper types. `any` triggers a warning:
 
 ```ts
@@ -78,6 +81,7 @@ function parse(input: any): any { ... }
 ```
 
 ### Nullish Coalescing
+
 Use `??` instead of `||` for null/undefined checks:
 
 ```ts
@@ -86,11 +90,12 @@ const name = user.name ?? 'Anonymous'
 const count = options.count ?? 0
 
 // ❌ DON'T
-const name = user.name || 'Anonymous'  // empty string '' becomes 'Anonymous'
-const count = options.count || 0       // 0 becomes 0 (wrong with ||)
+const name = user.name || 'Anonymous' // empty string '' becomes 'Anonymous'
+const count = options.count || 0 // 0 becomes 0 (wrong with ||)
 ```
 
 ### Optional Chaining
+
 Use `?.` instead of manual null checks:
 
 ```ts
@@ -104,6 +109,7 @@ const result = callback && callback()
 ```
 
 ### Non-null Assertion
+
 Avoid `!` postfix — handle null explicitly:
 
 ```ts
@@ -119,6 +125,7 @@ el.textContent = 'Hello'
 ## Code Quality (SonarJS)
 
 ### Cognitive Complexity
+
 Keep functions under complexity 15. Break complex logic into smaller functions:
 
 ```ts
@@ -145,6 +152,7 @@ function processOrder(order: Order) {
 ```
 
 ### No Duplicate Strings
+
 Extract repeated strings (3+ occurrences) into constants:
 
 ```ts
@@ -160,6 +168,7 @@ if (order.status === 'active') { ... }
 ```
 
 ### No Identical Functions
+
 Don't copy-paste functions — extract shared logic:
 
 ```ts
@@ -171,13 +180,18 @@ const formatUser = formatEntity
 const formatProduct = formatEntity
 
 // ⚠️ WARNING — identical function bodies
-function formatUser(user) { return `${user.name} (#${user.id})` }
-function formatProduct(product) { return `${product.name} (#${product.id})` }
+function formatUser(user) {
+  return `${user.name} (#${user.id})`
+}
+function formatProduct(product) {
+  return `${product.name} (#${product.id})`
+}
 ```
 
 ## Array Best Practices (Unicorn)
 
 ### No `.forEach()` — Use `for...of`
+
 ```ts
 // ✅ DO
 for (const item of items) {
@@ -191,6 +205,7 @@ items.forEach((item) => {
 ```
 
 ### Use `.some()` for Existence Checks
+
 ```ts
 // ✅ DO
 const hasAdmin = users.some((user) => user.role === 'admin')
@@ -200,6 +215,7 @@ const hasAdmin = users.filter((user) => user.role === 'admin').length > 0
 ```
 
 ### No `new Array()` — Use Literals
+
 ```ts
 // ✅ DO
 const items: string[] = []
@@ -223,8 +239,10 @@ console.log('debug value:', value) // use console.warn/error instead
 ## Test File Exceptions
 
 In `*.test.*` and `*.spec.*` files, the following rules are relaxed:
+
 - `@typescript-eslint/no-explicit-any` → off
 - `sonarjs/no-duplicate-string` → off
 
 In `*.stories.*` files:
+
 - `import/no-extraneous-dependencies` → off
