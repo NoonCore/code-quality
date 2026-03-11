@@ -38,7 +38,8 @@
     ".eslintrc.js",
     ".prettierrc",
     "knip.json",
-    "tsconfig.json"
+    "tsconfig.json",
+    ".code-quality.json.example"
   ],
   "repository": {
     "type": "git",

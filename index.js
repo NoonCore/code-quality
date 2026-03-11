@@ -29,6 +29,89 @@ function loadEnvFile() {
   }
 }
 
+// Check if this is first run and setup configuration
+function checkFirstRun() {
+  const configPath = path.join(process.cwd(), '.code-quality.json');
+  
+  if (!fs.existsSync(configPath)) {
+    colorLog('\n🔧 Code Quality Library - First Time Setup', 'bright');
+    colorLog('─'.repeat(50), 'cyan');
+    colorLog('\nChoose your quality rules configuration:', 'yellow');
+    colorLog('1) Use library rules (recommended for new projects)', 'white');
+    colorLog('2) Use project rules (keep existing configurations)', 'white');
+    colorLog('3) Custom setup (choose specific tools)', 'white');
+    
+    // For now, default to library rules
+    // In a real implementation, you would read user input here
+    const choice = process.env.CODE_QUALITY_CHOICE || '1';
+    
+    const config = {
+      useLibraryRules: choice === '1',
+      useProjectRules: choice === '2',
+      customSetup: choice === '3',
+      tools: ['TypeScript', 'ESLint', 'Prettier', 'Knip', 'Snyk'],
+      copyConfigs: choice === '1',
+      version: '1.0.1'
+    };
+    
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    
+    if (choice === '1') {
+      colorLog('\n✅ Using library rules - Config files will be copied', 'green');
+    } else if (choice === '2') {
+      colorLog('\n✅ Using project rules - Existing configs preserved', 'green');
+    } else {
+      colorLog('\n✅ Custom setup - Configure as needed', 'green');
+    }
+    
+    colorLog('\n💡 To change this later, edit: .code-quality.json', 'cyan');
+    colorLog('💡 Or run: code-quality --config to reconfigure', 'cyan');
+    colorLog('─'.repeat(50), 'cyan');
+    
+    return config;
+  }
+  
+  try {
+    return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  } catch (error) {
+    colorLog('⚠️  Invalid config file, using defaults', 'yellow');
+    return {
+      useLibraryRules: true,
+      useProjectRules: false,
+      customSetup: false,
+      tools: ['TypeScript', 'ESLint', 'Prettier', 'Knip', 'Snyk'],
+      copyConfigs: true
+    };
+  }
+}
+
+// Copy config files from library to project
+function copyConfigFiles(packageManager) {
+  const libPath = path.dirname(__dirname);
+  const projectPath = process.cwd();
+  
+  const configs = [
+    { src: '.eslintrc.js', dest: '.eslintrc.js' },
+    { src: '.prettierrc', dest: '.prettierrc' },
+    { src: 'knip.json', dest: 'knip.json' },
+    { src: 'tsconfig.json', dest: 'tsconfig.json' }
+  ];
+  
+  configs.forEach(({ src, dest }) => {
+    const srcPath = path.join(libPath, src);
+    const destPath = path.join(projectPath, dest);
+    
+    try {
+      if (fs.existsSync(srcPath)) {
+        fs.copyFileSync(srcPath, destPath);
+        colorLog(`✅ Copied ${dest}`, 'green');
+      }
+    } catch (error) {
+      colorLog(`⚠️  Could not copy ${dest}: ${error.message}`, 'yellow');
+    }
+  });
+}
+
 // Color codes for beautiful output
 const colors = {
   reset: '\x1b[0m',
@@ -89,29 +172,17 @@ function getExecCommand(packageManager) {
 // Main class for the library
 class CodeQualityChecker {
   constructor(options = {}) {
-    const packageManager = options.packageManager || detectPackageManager();
-    const runCommand = getRunCommand(packageManager);
-    const execCommand = getExecCommand(packageManager);
+    // Check first run configuration
+    const config = checkFirstRun();
     
     this.options = {
       loadEnv: true,
-      tools: ['TypeScript', 'ESLint', 'Prettier', 'Knip', 'Snyk'],
-      commands: {
-        TypeScript: `${runCommand} type:check`,
-        ESLint: `${runCommand} lint:check`,
-        Prettier: `${runCommand} format:check`,
-        Knip: `${runCommand} knip:error`,
-        Snyk: `${runCommand} snyk`
-      },
-      descriptions: {
-        TypeScript: 'TypeScript compilation',
-        ESLint: 'ESLint validation',
-        Prettier: 'Prettier formatting',
-        Knip: 'Dead code detection',
-        Snyk: 'Security vulnerability scan'
-      },
-      packageManager,
-      copyConfigs: true,
+      tools: config.tools || ['TypeScript', 'ESLint', 'Prettier', 'Knip', 'Snyk'],
+      packageManager: detectPackageManager(),
+      copyConfigs: config.copyConfigs !== false,
+      useLibraryRules: config.useLibraryRules !== false,
+      useProjectRules: config.useProjectRules || false,
+      customSetup: config.customSetup || false,
       ...options
     };
     
@@ -119,13 +190,33 @@ class CodeQualityChecker {
       loadEnvFile();
     }
     
-    if (this.options.copyConfigs) {
+    if (this.options.copyConfigs && this.options.useLibraryRules) {
       copyConfigFiles(this.options.packageManager);
     }
   }
 
   runCommand(command, description) {
-    return runCommand(command, description);
+    const startTime = Date.now();
+    const result = {
+      success: true,
+      message: ''
+    };
+    
+    try {
+      const output = execSync(command, { encoding: 'utf8' });
+      result.message = output.trim();
+    } catch (error) {
+      result.success = false;
+      result.message = error.stdout.trim();
+    }
+    
+    const endTime = Date.now();
+    const duration = (endTime - startTime) / 1000;
+    
+    return {
+      ...result,
+      duration
+    };
   }
 
   formatOutput(tool, result) {
@@ -167,8 +258,12 @@ class CodeQualityChecker {
     }
 
     const args = process.argv.slice(2);
-    if (args.includes('--no-configs')) {
-      this.options.copyConfigs = false;
+    for (const arg of args) {
+      if (arg === '--no-configs') {
+        this.options.copyConfigs = false;
+      } else if (arg === '--config') {
+        this.options.reconfigure = true;
+      }
     }
 
     console.log('\n');
@@ -196,26 +291,62 @@ module.exports = { CodeQualityChecker };
 // If run directly, execute with default options
 if (require.main === module) {
   const args = process.argv.slice(2);
-
-  if (args.includes('--help') || args.includes('-h')) {
-    console.log('Usage: code-quality-lib [options]');
-    console.log('');
-    console.log('Options:');
-    console.log('  --help, -h     Show this help message');
-    console.log('  --version, -v  Show version number');
-    console.log('');
-    console.log('Runs TypeScript, ESLint, Prettier, Knip, and Snyk checks.');
-    process.exit(0);
+  const options = {};
+  
+  // Check for reconfigure flag
+  if (args.includes('--config')) {
+    // Remove existing config and run setup again
+    const configPath = path.join(process.cwd(), '.code-quality.json');
+    if (fs.existsSync(configPath)) {
+      fs.unlinkSync(configPath);
+      colorLog('🔧 Configuration reset - Running setup again', 'yellow');
+    }
   }
+  
+  // Parse command line arguments
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--no-env') {
+      options.loadEnv = false;
+    } else if (arg === '--no-configs') {
+      options.copyConfigs = false;
+    } else if (arg.startsWith('--tools=')) {
+      options.tools = arg.split('=')[1].split(',');
+    } else if (arg === '--help' || arg === '-h') {
+      console.log(`
+Professional Code Quality Checker
 
+Usage: code-quality [options]
+
+Options:
+  --no-env          Skip loading .env file
+  --no-configs      Skip copying config files
+  --config          Reconfigure setup choices
+  --tools=tools     Comma-separated list of tools to run
+                    (TypeScript,ESLint,Prettier,Knip,Snyk)
+  --help, -h        Show this help message
+
+Examples:
+  code-quality                    # Run all tools
+  code-quality --tools=ESLint     # Run only ESLint
+  code-quality --no-env           # Skip .env loading
+  code-quality --config           # Reconfigure setup
+      `);
+      process.exit(0);
+    }
+  }
+  
   if (args.includes('--version') || args.includes('-v')) {
     const pkg = require('./package.json');
     console.log(pkg.version);
     process.exit(0);
   }
-
-  const checker = new CodeQualityChecker();
-  checker.run().then(result => {
-    process.exit(result.success ? 0 : 1);
+  
+  const checker = new CodeQualityChecker(options);
+  checker.run().then(({ success }) => {
+    process.exit(success ? 0 : 1);
+  }).catch(error => {
+    console.error('Error running quality checks:', error);
+    process.exit(1);
   });
 }

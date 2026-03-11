@@ -1,0 +1,8 @@
+{
+  "useLibraryRules": true,
+  "useProjectRules": false,
+  "customSetup": false,
+  "tools": ["TypeScript", "ESLint", "Prettier", "Knip", "Snyk"],
+  "copyConfigs": true,
+  "version": "1.0.1"
+}
