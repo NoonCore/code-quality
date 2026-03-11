@@ -39,11 +39,54 @@ yarn dlx code-quality     # yarn
 
 ```bash
 code-quality              # run all quality checks
-code-quality --logs       # show detailed error output
+code-quality --wizard     # run interactive setup wizard
 code-quality --config     # generate .code-quality.json config file
+code-quality --logs       # show detailed error output
 code-quality --help       # show help
 code-quality --version    # show version
 ```
+
+### Interactive Wizard
+
+Use the wizard to configure options before running:
+
+```bash
+code-quality --wizard
+```
+
+The wizard will guide you through:
+
+```
+🧙‍♂️ Code Quality Setup Wizard
+──────────────────────────────────────────────────
+Let's configure your quality checks!
+
+📦 Detected package manager: npm
+Use npm? (Y/n): 
+
+⚙️  Config Options:
+1. Project configs (use your .eslintrc, .prettierrc, etc.)
+2. Bundled configs (use library's built-in configs)
+Choose config type (1/2) [1]: 
+
+🔧 Select tools to run (space-separated, or "all"):
+Available: TypeScript, ESLint, Prettier, Knip, Snyk
+Tools [all]: 
+
+🌍 Environment Variables:
+Load .env file before checks? (Y/n) [Y]: 
+
+📋 Configuration Summary:
+──────────────────────────────────────────────────
+📦 Package Manager: npm
+⚙️  Config: Project configs
+🔧 Tools: TypeScript, ESLint, Prettier, Knip, Snyk
+🌍 Load .env: Yes
+──────────────────────────────────────────────────
+Run checks with these settings? (Y/n): 
+```
+
+After confirmation, it runs the quality checks with your selected settings.
 
 ### Terminal Output
 

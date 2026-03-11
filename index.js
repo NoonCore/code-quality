@@ -474,6 +474,86 @@ function loadConfigFile() {
   }
 }
 
+// ─── Interactive Wizard ───────────────────────────────────────────────────
+
+async function runWizard() {
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  console.log('\n🧙‍♂️ Code Quality Setup Wizard');
+  console.log('─'.repeat(50));
+  console.log('Let\'s configure your quality checks!\n');
+
+  // Step 1: Package Manager
+  const pm = detectPackageManager();
+  console.log(`📦 Detected package manager: ${pm}`);
+  const pmAnswer = await askQuestion(rl, `Use ${pm}? (Y/n): `);
+  const selectedPm = pmAnswer.toLowerCase().startsWith('n') ? 
+    await askQuestion(rl, 'Enter package manager (npm/bun/pnpm/yarn): ') : pm;
+
+  // Step 2: Config Type
+  console.log('\n⚙️  Config Options:');
+  console.log('1. Project configs (use your .eslintrc, .prettierrc, etc.)');
+  console.log('2. Bundled configs (use library\'s built-in configs)');
+  const configAnswer = await askQuestion(rl, 'Choose config type (1/2) [1]: ');
+  const useProjectConfig = configAnswer !== '2';
+
+  // Step 3: Tools Selection
+  console.log('\n🔧 Select tools to run (space-separated, or "all"):');
+  console.log('Available: TypeScript, ESLint, Prettier, Knip, Snyk');
+  const toolsAnswer = await askQuestion(rl, 'Tools [all]: ');
+  const tools = toolsAnswer.toLowerCase() === 'all' || !toolsAnswer.trim() ?
+    ['TypeScript', 'ESLint', 'Prettier', 'Knip', 'Snyk'] :
+    toolsAnswer.split(/\s+/).map(t => t.trim()).filter(t => t);
+
+  // Step 4: Load .env
+  console.log('\n🌍 Environment Variables:');
+  const envAnswer = await askQuestion(rl, 'Load .env file before checks? (Y/n) [Y]: ');
+  const loadEnv = !envAnswer.toLowerCase().startsWith('n');
+
+  // Step 5: Show summary and confirm
+  console.log('\n📋 Configuration Summary:');
+  console.log('─'.repeat(50));
+  console.log(`📦 Package Manager: ${selectedPm}`);
+  console.log(`⚙️  Config: ${useProjectConfig ? 'Project configs' : 'Bundled configs'}`);
+  console.log(`🔧 Tools: ${tools.join(', ')}`);
+  console.log(`🌍 Load .env: ${loadEnv ? 'Yes' : 'No'}`);
+  console.log('─'.repeat(50));
+
+  const confirm = await askQuestion(rl, 'Run checks with these settings? (Y/n): ');
+  
+  rl.close();
+
+  if (confirm.toLowerCase().startsWith('n')) {
+    console.log('\n❌ Wizard cancelled. Use --config flag to generate config file manually.');
+    process.exit(0);
+  }
+
+  // Run with wizard settings
+  const config = {
+    packageManager: selectedPm,
+    useProjectConfig,
+    tools,
+    loadEnv
+  };
+
+  const checker = new CodeQualityChecker(config);
+  const result = await checker.run({ showLogs: false });
+  
+  process.exit(result.success ? 0 : 1);
+}
+
+function askQuestion(rl, question) {
+  return new Promise(resolve => {
+    rl.question(question, answer => {
+      resolve(answer.trim());
+    });
+  });
+}
+
 // ─── CLI Entry Point ────────────────────────────────────────────────────────
 
 if (require.main === module) {
@@ -487,9 +567,11 @@ if (require.main === module) {
     console.log('  --version, -v  Show version number');
     console.log('  --logs         Show detailed error logs');
     console.log('  --config       Generate .code-quality.json configuration file');
+    console.log('  --wizard       Run interactive setup wizard');
     console.log('');
     console.log('Examples:');
     console.log('  code-quality                    # Run checks with defaults');
+    console.log('  code-quality --wizard           # Run interactive wizard');
     console.log('  code-quality --config            # Generate config file');
     console.log('  code-quality --logs              # Run with verbose output');
     console.log('');
@@ -506,6 +588,14 @@ if (require.main === module) {
   if (args.includes('--config')) {
     generateConfigFile();
     process.exit(0);
+  }
+
+  if (args.includes('--wizard')) {
+    runWizard().catch(err => {
+      console.error('❌ Wizard error:', err.message);
+      process.exit(1);
+    });
+    return;
   }
 
   // Load config file if exists
