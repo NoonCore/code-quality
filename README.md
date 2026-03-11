@@ -24,11 +24,38 @@
 # Install as dependency
 npm install code-quality-lib
 
-# Or install globally for CLI usage
+# Install with bun (faster)
+bun add code-quality-lib
+
+# Install with pnpm
+pnpm add code-quality-lib
+
+# Install with yarn
+yarn add code-quality-lib
+
+# Install globally for CLI usage
 npm install -g code-quality-lib
+
+# Install globally with bun
+bun add -g code-quality-lib
+
+# Install globally with pnpm
+pnpm add -g code-quality-lib
+
+# Install globally with yarn
+yarn global add code-quality-lib
 
 # Install from GitHub (development)
 npm install https://github.com/NoonCore/code-quality-lib.git
+
+# Install from GitHub with bun
+bun add https://github.com/NoonCore/code-quality-lib.git
+
+# Install from GitHub with pnpm
+pnpm add https://github.com/NoonCore/code-quality-lib.git
+
+# Install from GitHub with yarn
+yarn add https://github.com/NoonCore/code-quality-lib.git
 ```
 
 ## Usage
@@ -239,11 +266,11 @@ interface QualityCheckResult {
 - **Node.js** >= 14.0.0
 - **Package Manager**: bun, pnpm, yarn, or npm (auto-detected)
 - **Quality Tools** (install only what you need):
-  - **TypeScript** - `npm install -D typescript`
-  - **ESLint** - `npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin`
-  - **Prettier** - `npm install -D prettier eslint-config-prettier`
-  - **Knip** - `npm install -D knip`
-  - **Snyk** - `npm install -D snyk`
+  - **TypeScript** - `npm install -D typescript` or `bun add -D typescript` or `pnpm add -D typescript` or `yarn add -D typescript`
+  - **ESLint** - `npm install -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin` or `bun add -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin`
+  - **Prettier** - `npm install -D prettier eslint-config-prettier` or `bun add -D prettier eslint-config-prettier`
+  - **Knip** - `npm install -D knip` or `bun add -D knip`
+  - **Snyk** - `npm install -D snyk` or `bun add -D snyk`
 
 ### Quick Setup
 
@@ -251,11 +278,26 @@ interface QualityCheckResult {
 # Install all quality tools (example with npm)
 npm install -D typescript eslint prettier knip snyk
 
-# Install with bun (faster)
+# Install all quality tools with bun (faster)
 bun add -D typescript eslint prettier knip snyk
 
-# Minimal setup
+# Install all quality tools with pnpm
+pnpm add -D typescript eslint prettier knip snyk
+
+# Install all quality tools with yarn
+yarn add -D typescript eslint prettier knip snyk
+
+# Minimal setup with npm
 npm install -D typescript eslint prettier
+
+# Minimal setup with bun
+bun add -D typescript eslint prettier
+
+# Minimal setup with pnpm
+pnpm add -D typescript eslint prettier
+
+# Minimal setup with yarn
+yarn add -D typescript eslint prettier
 ```
 
 **Note**: The library automatically skips tools that aren't installed, so you can start with just the tools you need and add more later.
