@@ -233,52 +233,95 @@ class CodeQualityChecker {
     const runCmd = getRunPrefix(pm);
     const results = [];
     let allPassed = true;
+    let step = 1;
 
-    console.log('\n🔍 Professional Code Quality Check\n');
+    // Header
+    console.log('\n� Code Quality Setup');
     console.log('─'.repeat(50));
-    console.log(`📦 Using ${pm} package manager`);
-    console.log(`⚙️  Config: ${this.options.useProjectConfig ? 'Project configs' : 'Bundled configs'}\n`);
+    console.log(`📦 Package Manager: ${pm}`);
+    console.log(`⚙️  Config: ${this.options.useProjectConfig ? 'Project configs' : 'Bundled configs'}`);
+    console.log(`🔧 Tools: ${checks.length} quality checks\n`);
 
     if (showLogs) {
-      console.log('📋 Detailed error logging enabled (--logs flag)\n');
+      console.log('📋 Verbose logging enabled\n');
     }
 
+    // Run each check with step-by-step output
     for (const { name, cmd, description } of checks) {
-      console.log(`Running ${name}...`);
-      const result = this.runCommand(cmd, description);
+      const stepNum = String(step).padStart(2, ' ');
+      const spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+      let spinIndex = 0;
 
+      // Show starting message
+      process.stdout.write(`${stepNum}. ${name}... `);
+      
+      // Simple spinner (simulate work)
+      const spinInterval = setInterval(() => {
+        process.stdout.write(`\r${stepNum}. ${name}... ${spinner[spinIndex]}`);
+        spinIndex = (spinIndex + 1) % spinner.length;
+      }, 100);
+
+      // Run the actual check
+      const result = this.runCommand(cmd, description);
+      
+      // Stop spinner
+      clearInterval(spinInterval);
+
+      // Show result
       if (result.success) {
-        console.log(`✅ ${name}: Passed`);
+        process.stdout.write(`\r${stepNum}. ${name}... ✅ Done\n`);
       } else {
         allPassed = false;
-        console.log(`❌ ${name}: Failed`);
+        process.stdout.write(`\r${stepNum}. ${name}... ❌ Failed\n`);
       }
 
+      // Show details if logs enabled
       if (showLogs && result.output) {
-        const icon = result.success ? '📄' : '❌';
-        console.log(`\n${icon} ${name} ${result.success ? 'Output' : 'Error Details'}:`);
-        console.log('─'.repeat(50));
-        console.log(result.output);
-        console.log('─'.repeat(50));
-        console.log('');
+        console.log(`   ${result.success ? '📄 Output:' : '❌ Error:'}`);
+        console.log('   ' + '─'.repeat(48));
+        const lines = result.output.split('\n');
+        for (const line of lines.slice(0, 10)) { // Limit output
+          console.log(`   ${line}`);
+        }
+        if (lines.length > 10) {
+          console.log(`   ... (${lines.length - 10} more lines)`);
+        }
+        console.log('   ' + '─'.repeat(48));
       }
 
       results.push({ name, description, ...result });
+      step++;
     }
 
     // Generate report
     this._writeReport(results, allPassed, pm, runCmd);
 
+    // Summary
     console.log('\n' + '─'.repeat(50));
-
+    console.log('📊 Quality Check Summary\n');
+    
+    const passed = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
+    
+    // Show results with checkmarks/strikes
+    for (const result of results) {
+      const icon = result.success ? '✅' : '❌';
+      const name = result.name.padEnd(12, ' ');
+      console.log(`${icon} ${name}${result.success ? 'Passed' : 'Failed'}`);
+    }
+    
+    console.log('\n' + '─'.repeat(50));
+    
     if (allPassed) {
-      console.log('\n🎉 All quality checks passed! Code is ready for production.\n');
+      console.log('🎉 Success! All quality checks passed.\n');
+      console.log('✅ Your code is ready for production!\n');
     } else {
-      console.log('\n❌ Some quality checks failed. Please fix the issues above.\n');
+      console.log('❌ Some quality checks failed.\n');
+      console.log(`📊 Results: ${passed.length} passed, ${failed.length} failed\n`);
       if (!showLogs) {
-        console.log('💡 Run with --logs flag to see detailed errors in terminal');
+        console.log('💡 Run with --logs flag to see detailed errors');
       }
-      console.log('📄 See .quality-report.md for detailed error information\n');
+      console.log('📄 See .quality-report.md for full details\n');
     }
 
     return {

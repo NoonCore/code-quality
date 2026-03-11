@@ -45,6 +45,38 @@ code-quality --help       # show help
 code-quality --version    # show version
 ```
 
+### Terminal Output
+
+The CLI provides step-by-step progress like setup wizards:
+
+```
+🚀 Code Quality Setup
+──────────────────────────────────────────────────
+📦 Package Manager: npm
+⚙️  Config: Project configs
+🔧 Tools: 5 quality checks
+
+ 1. TypeScript... ✅ Done
+ 2. ESLint... ✅ Done
+ 3. Prettier... ✅ Done
+ 4. Knip... ✅ Done
+ 5. Snyk... ✅ Done
+
+──────────────────────────────────────────────────
+📊 Quality Check Summary
+
+✅ TypeScript  Passed
+✅ ESLint      Passed
+✅ Prettier    Passed
+✅ Knip        Passed
+✅ Snyk        Passed
+
+──────────────────────────────────────────────────
+🎉 Success! All quality checks passed.
+
+✅ Your code is ready for production!
+```
+
 ### Configuration File
 
 Generate a configuration file to customize your quality checks:
