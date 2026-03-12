@@ -882,6 +882,7 @@ function initConfigFiles() {
     { src: 'tsconfig.json', dest: 'tsconfig.json', desc: 'TypeScript configuration' },
     { src: '.prettierrc', dest: '.prettierrc', desc: 'Prettier configuration' },
     { src: '.prettierignore', dest: '.prettierignore', desc: 'Prettier ignore patterns' },
+    { src: 'knip.json', dest: 'knip.json', desc: 'Knip dead code detection configuration' },
     { src: 'config.json', dest: '.code-quality/config.json', desc: 'Code quality configuration' },
   ]
 
