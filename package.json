@@ -1,6 +1,6 @@
 {
   "name": "code-quality-lib",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "A configurable code quality checker library for Node.js projects",
   "main": "index.js",
   "types": "index.d.ts",
@@ -41,7 +41,7 @@
     "eslint-plugin-sonarjs": "^4.0.2",
     "eslint-plugin-storybook": "^0.11.6",
     "eslint-plugin-unicorn": "^57.0.0",
-    "knip": "^5.43.2",
+    "knip": "^5.86.0",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3"
   },
