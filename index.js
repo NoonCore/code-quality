@@ -1075,6 +1075,27 @@ function loadConfigFile() {
   return null
 }
 
+// Check if essential config files exist
+function checkConfigFiles() {
+  const cwd = process.cwd()
+  const essentialConfigs = [
+    'eslint.config.mjs',
+    '.eslintrc.js',
+    '.eslintrc.json',
+    'tsconfig.json',
+    '.prettierrc',
+    '.prettierrc.json',
+    'knip.json'
+  ]
+  
+  const existingConfigs = essentialConfigs.filter(config => {
+    const configPath = path.join(cwd, config)
+    return fs.existsSync(configPath)
+  })
+  
+  return existingConfigs
+}
+
 // ─── Interactive Wizard ───────────────────────────────────────────────────
 
 async function runWizard() {
@@ -1086,6 +1107,8 @@ async function runWizard() {
 
   // Check if config already exists
   const existingConfig = loadConfigFile()
+  const existingFiles = checkConfigFiles()
+  
   if (existingConfig) {
     console.log('\n📋 Found existing configuration:')
     console.log(`📦 Package Manager: ${existingConfig.packageManager || 'auto-detected'}`)
@@ -1099,6 +1122,34 @@ async function runWizard() {
       const checker = new CodeQualityChecker(existingConfig)
       const result = await checker.run({ showLogs: false })
       process.exit(result.success ? 0 : 1)
+    }
+  } else {
+    // No config found, check if we have essential config files
+    if (existingFiles.length === 0) {
+      console.log('\n🔍 No configuration files found')
+      console.log('📦 Initializing default config files first...')
+      
+      rl.close()
+      
+      // Run init to create config files
+      try {
+        initConfigFiles()
+        console.log('\n✅ Config files initialized successfully!')
+        console.log('🎯 Now starting the wizard to customize your setup...\n')
+        
+        // Restart wizard after init
+        setTimeout(() => {
+          runWizard()
+        }, 1000)
+        return
+      } catch (initError) {
+        console.error('❌ Failed to initialize config files:', initError.message)
+        process.exit(1)
+      }
+    } else {
+      console.log('\n📋 Found existing config files:')
+      existingFiles.forEach(file => console.log(`  ✓ ${file}`))
+      console.log('\n🎯 Starting wizard to create quality configuration...')
     }
   }
 
