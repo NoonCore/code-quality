@@ -1124,29 +1124,8 @@ async function runWizard() {
       process.exit(result.success ? 0 : 1)
     }
   } else {
-    // No config found, check if we have essential config files
-    if (existingFiles.length === 0) {
-      console.log('\n🔍 No configuration files found')
-      console.log('📦 Initializing default config files first...')
-      
-      rl.close()
-      
-      // Run init to create config files
-      try {
-        initConfigFiles()
-        console.log('\n✅ Config files initialized successfully!')
-        console.log('🎯 Now starting the wizard to customize your setup...\n')
-        
-        // Restart wizard after init
-        setTimeout(() => {
-          runWizard()
-        }, 1000)
-        return
-      } catch (initError) {
-        console.error('❌ Failed to initialize config files:', initError.message)
-        process.exit(1)
-      }
-    } else {
+    // No config found but init was already run by main CLI
+    if (existingFiles.length > 0) {
       console.log('\n📋 Found existing config files:')
       existingFiles.forEach(file => console.log(`  ✓ ${file}`))
       console.log('\n🎯 Starting wizard to create quality configuration...')
@@ -1607,6 +1586,23 @@ if (require.main === module) {
   const config = loadConfigFile()
   if (!config) {
     console.log('🔧 No configuration found. Starting setup wizard...\n')
+    
+    // Check if essential config files exist, if not run init first
+    const existingFiles = checkConfigFiles()
+    if (existingFiles.length === 0) {
+      console.log('🔍 No configuration files found')
+      console.log('📦 Initializing default config files first...\n')
+      
+      try {
+        initConfigFiles()
+        console.log('✅ Config files initialized successfully!')
+        console.log('🎯 Now starting the wizard to customize your setup...\n')
+      } catch (initError) {
+        console.error('❌ Failed to initialize config files:', initError.message)
+        process.exit(1)
+      }
+    }
+    
     runWizard().catch((err) => {
       console.error('❌ Wizard error:', err.message)
       process.exit(1)
