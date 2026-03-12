@@ -297,7 +297,7 @@ class CodeQualityChecker {
             env: process.env,
             timeout: 30000, // 30 second timeout for actual test
           })
-          
+
           if (testResult.includes('✔ Tested') || testResult.includes('No vulnerable paths found')) {
             return { success: true, output: testResult.trim() }
           } else {
@@ -837,33 +837,33 @@ async function runQualityCheck(options = {}) {
 
 function initConfigFiles() {
   const rootDir = process.cwd()
-  
+
   // Try multiple approaches to find the config directory
   let libConfigDir
-  
+
   // Method 1: Use __filename if it points to the actual script
   if (__filename !== '[eval]' && !__filename.includes('bunx')) {
     const scriptPath = path.resolve(__filename)
     const packageDir = path.dirname(scriptPath)
     libConfigDir = path.join(packageDir, 'config')
   }
-  
+
   // Method 2: Try to find the package via require.resolve
   if (!libConfigDir || !fs.existsSync(libConfigDir)) {
     try {
       const packagePath = path.dirname(require.resolve('code-quality-lib/package.json'))
       libConfigDir = path.join(packagePath, 'config')
-    } catch (e) {
+    } catch (_e) {
       // Continue to next method
     }
   }
-  
+
   // Method 3: Use global npm path
   if (!libConfigDir || !fs.existsSync(libConfigDir)) {
     const npmPrefix = process.env.npm_config_prefix || '/opt/homebrew'
     libConfigDir = path.join(npmPrefix, 'lib', 'node_modules', 'code-quality-lib', 'config')
   }
-  
+
   // Method 4: Fallback to local config directory
   if (!libConfigDir || !fs.existsSync(libConfigDir)) {
     libConfigDir = path.join(__dirname, 'config')
@@ -1085,14 +1085,14 @@ function checkConfigFiles() {
     'tsconfig.json',
     '.prettierrc',
     '.prettierrc.json',
-    'knip.json'
+    'knip.json',
   ]
-  
-  const existingConfigs = essentialConfigs.filter(config => {
+
+  const existingConfigs = essentialConfigs.filter((config) => {
     const configPath = path.join(cwd, config)
     return fs.existsSync(configPath)
   })
-  
+
   return existingConfigs
 }
 
@@ -1108,12 +1108,14 @@ async function runWizard() {
   // Check if config already exists
   const existingConfig = loadConfigFile()
   const existingFiles = checkConfigFiles()
-  
+
   if (existingConfig) {
     console.log('\n📋 Found existing configuration:')
     console.log(`📦 Package Manager: ${existingConfig.packageManager || 'auto-detected'}`)
     console.log(`⚙️  Config: Project configs (detected)`)
-    console.log(`🔧 Tools: ${(existingConfig.tools || ['ESLint', 'TypeScript', 'Prettier', 'Knip', 'Snyk']).join(', ')}`)
+    console.log(
+      `🔧 Tools: ${(existingConfig.tools || ['ESLint', 'TypeScript', 'Prettier', 'Knip', 'Snyk']).join(', ')}`
+    )
 
     const rerun = await askQuestion(rl, '\nReconfigure? (y/N): ')
     if (!rerun.toLowerCase().startsWith('y')) {
@@ -1127,7 +1129,7 @@ async function runWizard() {
     // No config found but init was already run by main CLI
     if (existingFiles.length > 0) {
       console.log('\n📋 Found existing config files:')
-      existingFiles.forEach(file => console.log(`  ✓ ${file}`))
+      existingFiles.forEach((file) => console.log(`  ✓ ${file}`))
       console.log('\n🎯 Starting wizard to create quality configuration...')
     }
   }
@@ -1173,28 +1175,33 @@ async function runWizard() {
   if (selectedTools.includes('Snyk')) {
     console.log('\n🔐 Snyk Setup')
     console.log('─'.repeat(30))
-    
+
     // Check if Snyk is installed
     try {
       require('child_process').execSync('snyk --version', { stdio: 'ignore' })
       console.log('✅ Snyk is already installed')
-    } catch (e) {
+    } catch (_e) {
       console.log('📦 Installing Snyk...')
       try {
         const pm = detectPackageManager()
-        const installCmd = pm === 'npm' ? 'npm install -D snyk' : 
-                          pm === 'bun' ? 'bun add -D snyk' :
-                          pm === 'pnpm' ? 'pnpm add -D snyk' : 'yarn add -D snyk'
-        
+        const installCmd =
+          pm === 'npm'
+            ? 'npm install -D snyk'
+            : pm === 'bun'
+              ? 'bun add -D snyk'
+              : pm === 'pnpm'
+                ? 'pnpm add -D snyk'
+                : 'yarn add -D snyk'
+
         console.log(`Running: ${installCmd}`)
         require('child_process').execSync(installCmd, { stdio: 'inherit' })
         console.log('✅ Snyk installed successfully')
-      } catch (installError) {
+      } catch (_installError) {
         console.log('⚠️  Failed to install Snyk automatically')
         console.log('💡 Please install manually: npm install -D snyk')
       }
     }
-    
+
     // Ask for Snyk token
     console.log('\n🔑 Snyk Token (optional)')
     console.log('You can provide your Snyk token now, or add it later to your .env file')
@@ -1209,7 +1216,7 @@ async function runWizard() {
 
   // Always create environments configuration
   let environments = {
-    development: { tools: selectedTools }
+    development: { tools: selectedTools },
   }
 
   // Step 4: Optional environment customization
@@ -1222,7 +1229,10 @@ async function runWizard() {
     console.log('\n🔧 Configure development tools (default: ESLint, TypeScript, Prettier):')
     const devTools = []
     for (const tool of allTools) {
-      const answer = await askQuestion(rl, `[${selectedTools.includes(tool) ? '✓' : ' '}] ${tool}? (Y/n): `)
+      const answer = await askQuestion(
+        rl,
+        `[${selectedTools.includes(tool) ? '✓' : ' '}] ${tool}? (Y/n): `
+      )
       if (!answer.toLowerCase().startsWith('n')) {
         devTools.push(tool)
       }
@@ -1232,8 +1242,14 @@ async function runWizard() {
     const ciTools = []
     for (const tool of allTools) {
       const defaultChecked = ['Knip', 'Snyk'].includes(tool) || selectedTools.includes(tool)
-      const answer = await askQuestion(rl, `[${defaultChecked ? '✓' : ' '}] ${tool}? (${defaultChecked ? 'Y/n' : 'y/N'}): `)
-      if ((defaultChecked && !answer.toLowerCase().startsWith('n')) || (!defaultChecked && answer.toLowerCase().startsWith('y'))) {
+      const answer = await askQuestion(
+        rl,
+        `[${defaultChecked ? '✓' : ' '}] ${tool}? (${defaultChecked ? 'Y/n' : 'y/N'}): `
+      )
+      if (
+        (defaultChecked && !answer.toLowerCase().startsWith('n')) ||
+        (!defaultChecked && answer.toLowerCase().startsWith('y'))
+      ) {
         ciTools.push(tool)
       }
     }
@@ -1281,7 +1297,7 @@ async function runWizard() {
     const configDir = path.join(process.cwd(), '.code-quality')
     const configPath = path.join(configDir, 'config.json')
 
-// Create .code-quality directory if it doesn't exist
+    // Create .code-quality directory if it doesn't exist
     if (!fs.existsSync(configDir)) {
       fs.mkdirSync(configDir, { recursive: true })
     }
@@ -1293,12 +1309,12 @@ async function runWizard() {
     if (snykToken) {
       const envPath = path.join(process.cwd(), '.env')
       let envContent = ''
-      
+
       // Read existing .env if it exists
       if (fs.existsSync(envPath)) {
         envContent = fs.readFileSync(envPath, 'utf8')
       }
-      
+
       // Add or update SNYK_TOKEN
       const tokenLine = `SNYK_TOKEN=${snykToken}`
       if (envContent.includes('SNYK_TOKEN=')) {
@@ -1308,7 +1324,7 @@ async function runWizard() {
         // Add new token
         envContent += (envContent && !envContent.endsWith('\n') ? '\n' : '') + tokenLine + '\n'
       }
-      
+
       fs.writeFileSync(envPath, envContent, 'utf8')
       console.log(`🔑 Snyk token saved to: ${envPath}`)
     }
@@ -1586,13 +1602,13 @@ if (require.main === module) {
   const config = loadConfigFile()
   if (!config) {
     console.log('🔧 No configuration found. Starting setup wizard...\n')
-    
+
     // Check if essential config files exist, if not run init first
     const existingFiles = checkConfigFiles()
     if (existingFiles.length === 0) {
       console.log('🔍 No configuration files found')
       console.log('📦 Initializing default config files first...\n')
-      
+
       try {
         initConfigFiles()
         console.log('✅ Config files initialized successfully!')
@@ -1602,7 +1618,7 @@ if (require.main === module) {
         process.exit(1)
       }
     }
-    
+
     runWizard().catch((err) => {
       console.error('❌ Wizard error:', err.message)
       process.exit(1)
