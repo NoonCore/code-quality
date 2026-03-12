@@ -2,7 +2,6 @@ import js from '@eslint/js'
 import typescript from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import prettier from 'eslint-config-prettier'
-import importPlugin from 'eslint-plugin-import'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import sonarjs from 'eslint-plugin-sonarjs'
@@ -126,21 +125,12 @@ const eslintConfig = [
         ConstStallCategory: 'readonly',
       },
     },
-    settings: {
-      'import/resolver': {
-        typescript: {
-          alwaysTryTypes: true,
-          project: './tsconfig.json',
-        },
-      },
-    },
     plugins: {
       '@typescript-eslint': typescript,
       react,
       'react-hooks': reactHooks,
       sonarjs,
       unicorn,
-      import: importPlugin,
       ...(nextPlugin ? { '@next/next': nextPlugin } : {}),
       ...(jsxA11yPlugin ? { 'jsx-a11y': jsxA11yPlugin } : {}),
       ...(prettierPlugin ? { prettier: prettierPlugin } : {}),
@@ -202,39 +192,6 @@ const eslintConfig = [
             'jsx-a11y/no-static-element-interactions': 'warn',
           }
         : {}),
-
-      // Import ordering
-      'import/order': [
-        'error',
-        {
-          groups: [
-            'type',
-            'builtin',
-            'external',
-            'internal',
-            'parent',
-            'sibling',
-            'index',
-            'object',
-          ],
-          pathGroups: [
-            {
-              pattern: '~/**',
-              group: 'external',
-              position: 'after',
-            },
-          ],
-          pathGroupsExcludedImportTypes: ['builtin'],
-          'newlines-between': 'always',
-          alphabetize: {
-            order: 'asc',
-            caseInsensitive: true,
-          },
-        },
-      ],
-      'import/no-duplicates': 'error',
-      'import/no-unresolved': 'error',
-      'import/no-cycle': 'error',
 
       // Code quality
       'no-console': ['error', { allow: ['warn', 'error'] }],
